@@ -259,15 +259,24 @@ class DashboardService {
         const maxPoints = Math.max(...municipioPoints, 1);
         const numLevels = Math.ceil(maxPoints / pointsPerLevel);
         
-        for (let i = 1; i <= numLevels + 1; i++) {
+        for (let i = 1; i <= numLevels; i++) {
             levelDistribution.push({
                 level: i,
-                minPoints: (i - 1) * pointsPerLevel + 1,
-                maxPoints: i * pointsPerLevel,
+                minPoints: (i - 1) * pointsPerLevel + 1,  // Começa em 1, 101, 201, etc.
+                maxPoints: i * pointsPerLevel - 1,        // Termina em 99, 199, 299, etc.
                 count: 0,
                 municipios: []
             });
         }
+        
+        // Adicionar um nível extra para os pontos que são múltiplos exatos de pointsPerLevel
+        levelDistribution.push({
+            level: numLevels + 1,
+            minPoints: numLevels * pointsPerLevel,        // Começa em 300, 400, etc.
+            maxPoints: (numLevels + 1) * pointsPerLevel - 1,  // Termina em 399, 499, etc.
+            count: 0,
+            municipios: []
+        });
 
         // Distribuir os municípios nos níveis
         for (let i = 0; i < municipios.length; i++) {
@@ -289,14 +298,24 @@ class DashboardService {
             }
 
             // Encontrar o nível apropriado para os pontos
-            const levelIndex = Math.floor((points - 1) / pointsPerLevel) + 2;
+            let levelIndex;
             
+            console.log({points,pointsPerLevel, levelIndex: (points / pointsPerLevel) + 1})
+            // Se points é múltiplo exato de pointsPerLevel, coloca no próximo nível
+            if (points % pointsPerLevel === 0) {
+                levelIndex = (points / pointsPerLevel) + 2;
+            } else {
+                levelIndex = Math.floor((points - 1) / pointsPerLevel) + 2;
+            }
+            console.log(levelDistribution[4])
+
             // Garantir que não exceda o array
             if (levelIndex < levelDistribution.length) {
                 levelDistribution[levelIndex].count++;
                 levelDistribution[levelIndex].municipios.push(municipio.codIbge);
             }
         }
+
 
         // Criar o panorama de desempenho
         const desempenhoPanorama = DesempenhoPanoramaDTO.builder()
@@ -367,7 +386,13 @@ class DashboardService {
         } else if (totalPoints === 0) {
             level = 0;     // Zero pontos
         } else {
-            level = Math.floor((totalPoints - 1) / pointsPerLevel) + 1;
+            // Se totalPoints é múltiplo exato de pointsPerLevel, coloca no próximo nível
+            if (totalPoints % pointsPerLevel === 0) {
+                level = totalPoints / pointsPerLevel;
+            } else {
+                console.log({municipio,level})
+                level = Math.floor((totalPoints - 1) / pointsPerLevel) + 1;
+            }
         }
         
         return {

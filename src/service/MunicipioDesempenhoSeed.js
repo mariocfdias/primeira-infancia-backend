@@ -252,13 +252,15 @@ async function seedMunicipioDesempenho(connection) {
                 }
                 
                 // Count unique badges (one badge per completed mission)
+                const hasCompletedMissions = desempenhos.some(d => d.validation_status === 'VALID');
                 const badgeCount = completedMissionIds.size;
                 
                 // Update municipality with calculated points and badges
                 const updatedMunicipio = {
                     ...municipio,
                     points: totalPoints,
-                    badges: badgeCount
+                    badges: badgeCount,
+                    status: hasCompletedMissions ? "Participante" : "Não Participante"
                 };
                 
                 await municipioService.saveMunicipio(updatedMunicipio);
@@ -268,25 +270,7 @@ async function seedMunicipioDesempenho(connection) {
             }
         }
 
-        // Update status to "Participante" for municipalities with completed missions
-        console.log('Updating status for municipalities with completed missions...');
-        for (const municipio of municipios) {
-            try {
-                const desempenhos = await municipioDesempenhoService.findByIbgeCode(municipio.codIbge);
-                const hasCompletedMissions = desempenhos.some(d => d.validation_status === 'VALID');
-                
-                if (hasCompletedMissions) {
-                    const updatedMunicipio = {
-                        ...municipio,
-                        status: "Participante"
-                    };
-                    await municipioService.saveMunicipio(updatedMunicipio);
-                    console.log(`Updated municipality ${municipio.codIbge} status to Participante`);
-                }
-            } catch (error) {
-                console.error(`Error updating status for municipality ${municipio.codIbge}:`, error.message);
-            }
-        }
+        // Update status to "Participante" for municipalities with completed mission
     } catch (error) {
         console.error('Error in municipio_desempenho seed:', error.message);
     }
