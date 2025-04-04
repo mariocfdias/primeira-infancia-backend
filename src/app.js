@@ -11,14 +11,14 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Job configuration
-const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbx0vtDoD-B0vq4vNlpPkQ69e8scixftZfqTFzAMmMFRQX4tqux9fIvKlNdcDKDrfwuM/exec';
+const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwqlQMpIBfX_cYkfbM5kCUY5kq3Zqzs0AVwbc2HngwuWFRJdni_QDwwS3i_6BDPjbSJ/exec';
 const jobConfig = {
     FETCH_MUNICIPIOS_URL: SCRIPT_URL,
     UPDATE_JSON_URL: SCRIPT_URL,
     FETCH_EVENTOS_URL: SCRIPT_URL,
     AUTOFETCH_URL: process.env.AUTOFETCH_URL || 'https://primeira-infancia-backend.onrender.com/api/municipios',
     FETCH_MISSOES_URL: SCRIPT_URL,
-    FETCH_MISSAO_DESEMPENHO_URL: process.env.FETCH_MISSAO_DESEMPENHO_URL || 'https://script.google.com/macros/s/AKfycbxcTV4SrjXBnYOaTr47bFmYTbHyePKB-BdR6fddMXdZVMnsM9Qy_E8knZEIsMgjdZHJ/exec'
+    FETCH_MISSAO_DESEMPENHO_URL: SCRIPT_URL || process.env.FETCH_MISSAO_DESEMPENHO_URL || 'https://script.google.com/macros/s/AKfycbxcTV4SrjXBnYOaTr47bFmYTbHyePKB-BdR6fddMXdZVMnsM9Qy_E8knZEIsMgjdZHJ/exec'
 };
 
 app.use(express.json());
@@ -51,7 +51,7 @@ async function startServer() {
         
         // Setup scheduled jobs
         await setupJobs(connection, jobConfig);
-        await seedMunicipioDesempenho(connection);
+        // await seedMunicipioDesempenho(connection);
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

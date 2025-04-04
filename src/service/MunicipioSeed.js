@@ -6,7 +6,27 @@ async function seedMunicipios(connection) {
     
     const municipiosData = [
         {
-            cod_ibge: "mpce",
+            cod_ibge: "PREFEITURA",
+            nome: "Prefeitura Municipal",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "CAMARA",
+            nome: "Câmara Municipal",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "MPCE",
             nome: "Ministério Público do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
@@ -16,7 +36,7 @@ async function seedMunicipios(connection) {
             orgao: true
         },
         {
-            cod_ibge: "govce",
+            cod_ibge: "GOVCE",
             nome: "Governo do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
@@ -26,7 +46,7 @@ async function seedMunicipios(connection) {
             orgao: true
         },
         {
-            cod_ibge: "tcece",
+            cod_ibge: "TCECE",
             nome: "TCE Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
@@ -36,11 +56,61 @@ async function seedMunicipios(connection) {
             orgao: true
         },
         {
-            cod_ibge: "podleg",
-            nome: "Poder Legislativo do Estado do Ceará",
+            cod_ibge: "ASLEG",
+            nome: "Assembleia Legislativa do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
             imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "DPCE",
+            nome: "Defensoria Pública do Estado do Ceará",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "MPCCE",
+            nome: "Ministério Público de Contas do Estado do Ceará",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "MPTCE",
+            nome: "Ministério Público do Trabalho no Ceará",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "STE",
+            nome: "Superintendência do Trabalho e Emprego",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            badges: 0,
+            points: 0,
+            orgao: true
+        },
+        {
+            cod_ibge: "TJCE",
+            nome: "Tribunal de Justiça do Estado do Ceará",
+            status: "Participante",
+            data_alteracao: new Date(0).toISOString(),
+            imagem_avatar: "https://drive.google.com/file/d/1-XJf5OKAoJ5DM6O-TJT3kSSpxambkao3/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -50,11 +120,12 @@ async function seedMunicipios(connection) {
     try {
         // Verificar se já existem os municipios específicos no banco
         const results = [];
-        
+        console.log({municipiosData});
         for (const municipioData of municipiosData) {
+            if(municipioData.cod_ibge == "PREFEITURA" || municipioData.cod_ibge == "CAMARA") {
+                continue;
+            }
             const existingMunicipio = await municipioService.findById(municipioData.cod_ibge);
-
-            console.log({existingMunicipio});
             
             if (existingMunicipio == null) {
                 console.log(`Adding municipio: ${municipioData.nome}`);

@@ -33,6 +33,10 @@ class MunicipioDesempenhoService {
         return await this.municipioDesempenhoRepository.findLatestUpdateDateByMissaoId(missaoId);
     }
 
+    async getLatestUpdateDateByOrgao(codIbge) {
+        return await this.municipioDesempenhoRepository.findLatestUpdateDateByOrgao(codIbge);
+    }
+
     async createDesempenho(desempenhoDTO) {
         const entity = desempenhoDTO.toEntity();
         const savedDesempenho = await this.municipioDesempenhoRepository.create(entity);
