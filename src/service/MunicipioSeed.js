@@ -70,7 +70,7 @@ async function seedMunicipios(connection) {
             nome: "Defensoria Pública do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1nb0ySnGH1XB88mTjNv7hcT5t9dYPE_0L/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -80,7 +80,7 @@ async function seedMunicipios(connection) {
             nome: "Ministério Público de Contas do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/14stBpGds6ApxoKbW1fZbOawfX5c8CJTo/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -90,7 +90,7 @@ async function seedMunicipios(connection) {
             nome: "Ministério Público do Trabalho no Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1luurWfHIPVUHKAFGo1_YqPtm9aL06hEk/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -100,7 +100,7 @@ async function seedMunicipios(connection) {
             nome: "Superintendência do Trabalho e Emprego",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1kHSKT81smSQi0HRwTGCEz6IEQ4MQz1lA/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
