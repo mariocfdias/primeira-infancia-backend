@@ -18,6 +18,14 @@ class MissoesController {
      *   get:
      *     summary: Retorna todas as missões
      *     tags: [Missoes]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar missões pelo tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Lista de missões
@@ -42,7 +50,16 @@ class MissoesController {
      */
     async getAllMissoes(req, res) {
         try {
-            const missoes = await this.missoesService.findAll();
+            const { orgao } = req.query;
+            // Validate that orgao is either PREFEITURA, CAMARA or undefined
+            if (orgao && !['PREFEITURA', 'CAMARA'].includes(orgao)) {
+                return res.status(400).json({ 
+                    status: 'error', 
+                    message: "O parâmetro 'orgao' deve ser 'PREFEITURA' ou 'CAMARA'" 
+                });
+            }
+            
+            const missoes = await this.missoesService.findAll(orgao);
             return res.json({ status: 'success', data: missoes });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message });

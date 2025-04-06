@@ -19,13 +19,26 @@ async function fetchMunicipios(connection, url) {
         const data = await response.json();
 
         if (data.status === 'success' && Array.isArray(data.data)) {
-            const promises = data.data.map(municipioData => {
-                console.log({municipioData})
-                return municipioService.saveMunicipio(municipioData);
+            const promises = [];
+            
+            data.data.forEach(municipioData => {
+                console.log({municipioData});
+                
+                // Create a copy of the data for CAMARA
+                const camaraData = {...municipioData};
+                camaraData.codIbge = `CAMARA-${municipioData.codIbge || municipioData.cod_ibge}`;
+                
+                // Create a copy of the data for PREFEITURA
+                const prefeituraData = {...municipioData};
+                prefeituraData.codIbge = `PREFEITURA-${municipioData.codIbge || municipioData.cod_ibge}`;
+                
+                // Save both records
+                promises.push(municipioService.saveMunicipio(camaraData));
+                promises.push(municipioService.saveMunicipio(prefeituraData));
             });
             
             await Promise.all(promises);
-            console.log(`Successfully processed ${promises.length} municipios`);
+            console.log(`Successfully processed ${promises.length} records for ${data.data.length} municipios (2 records each)`);
         } else {
             throw new Error('Invalid data format received');
         }

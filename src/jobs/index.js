@@ -89,8 +89,8 @@ async function runJobsImmediately(connection, config) {
         await fetchMissoes(connection, FETCH_MISSOES_URL);
         console.log('fetchMissoes job completed');
         
-        await fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
-        console.log('fetchMissaoDesempenho job completed');
+        // await fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
+        // console.log('fetchMissaoDesempenho job completed');
         
         // await fetchEventos(connection, FETCH_EVENTOS_URL);
         // console.log('fetchEventos job completed');

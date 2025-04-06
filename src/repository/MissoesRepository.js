@@ -7,6 +7,18 @@ class MissoesRepository {
         return await this.repository.find();
     }
 
+    async findAllByOrgao(orgao) {
+        return await this.repository.createQueryBuilder("missoes")
+            .where("missoes.id LIKE :orgao", { orgao: `%${orgao}%` })
+            .getMany();
+    }
+
+    async findAllByCode(code) {
+        return await this.repository.createQueryBuilder("missoes")
+            .where("missoes.id LIKE :id", { id: `%${code}%` })
+            .getMany();
+    }
+
     async findById(id) {
         return await this.repository.findOne({
             where: { id }

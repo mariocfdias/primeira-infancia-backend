@@ -4,18 +4,33 @@ class MunicipioRepository {
         this.municipioDesempenhoRepository = connection.getRepository("MunicipioDesempenho");
     }
 
-    async findAll() {
-        return await this.repository.find({
-            where: { orgao: false},
-            select: ["codIbge", "nome", "status", "badges", "points", "imagemAvatar"]
-        });
+    async findAll(orgao) {
+        if (orgao) {
+            return await this.repository.createQueryBuilder("municipio")
+                .where("municipio.codIbge LIKE :orgao", { orgao: `%${orgao}%` })
+                .select(["municipio.codIbge", "municipio.nome", "municipio.status", "municipio.badges", "municipio.points", "municipio.imagemAvatar"])
+                .getMany();
+        } else {
+            return await this.repository.find({
+                where: { orgao: false},
+                select: ["codIbge", "nome", "status", "badges", "points", "imagemAvatar"]
+            });
+        }
     }
 
-    async findParticipantes() {
-        return await this.repository.find({
-            where: { status: "Participante", orgao: false },
-            select: ["codIbge", "nome", "status", "badges", "points", "imagemAvatar", "orgao"]
-        });
+    async findParticipantes(orgao) {
+        if (orgao) {
+            return await this.repository.createQueryBuilder("municipio")
+                .where("municipio.status = :status AND municipio.codIbge LIKE :orgao", 
+                    { status: "Participante", orgao: `%${orgao}%` })
+                .select(["municipio.codIbge", "municipio.nome", "municipio.status", "municipio.badges", "municipio.points", "municipio.imagemAvatar", "municipio.orgao"])
+                .getMany();
+        } else {
+            return await this.repository.find({
+                where: { status: "Participante", orgao: false },
+                select: ["codIbge", "nome", "status", "badges", "points", "imagemAvatar", "orgao"]
+            });
+        }
     }
 
     async findByIdWithJson(codIbge) {
@@ -31,9 +46,20 @@ class MunicipioRepository {
         });
     }
 
-    async searchByName(search, limit = 10) {
-        return await this.repository.createQueryBuilder("municipio")
-            .where("municipio.nome LIKE :search", { search: `%${search}%` })
+    async searchByName(search, limit = 10, orgao) {
+        const queryBuilder = this.repository.createQueryBuilder("municipio");
+        
+        if (orgao) {
+            queryBuilder
+                .where("municipio.nome LIKE :search AND municipio.codIbge LIKE :orgao", 
+                    { search: `%${search}%`, orgao: `%${orgao}%` });
+        } else {
+            queryBuilder
+                .where("municipio.nome LIKE :search AND municipio.orgao = :orgaoFlag", 
+                    { search: `%${search}%`, orgaoFlag: false });
+        }
+        
+        return await queryBuilder
             .select(["municipio.codIbge", "municipio.nome", "municipio.status", "municipio.badges", "municipio.points", "municipio.imagemAvatar"])
             .take(limit)
             .getMany();

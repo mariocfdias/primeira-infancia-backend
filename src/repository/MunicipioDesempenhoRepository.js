@@ -3,10 +3,19 @@ class MunicipioDesempenhoRepository {
         this.repository = connection.getRepository("MunicipioDesempenho");
     }
 
-    async findAll() {
-        return await this.repository.find({
-            relations: ["municipio", "missao"]
-        });
+    async findAll(orgao) {
+        if (orgao) {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .where("desempenho.codIbge LIKE :orgao", { orgao: `%${orgao}%` })
+                .getMany();
+        } else {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .getMany();
+        }
     }
 
     async findById(id) {
@@ -16,25 +25,45 @@ class MunicipioDesempenhoRepository {
         });
     }
 
-    async findByIbgeCode(codIbge) {
-        return await this.repository.find({
-            where: { codIbge },
-            relations: ["municipio", "missao"]
-        });
+    async findByIbgeCode(codIbge, orgao) {
+        if (orgao) {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .where("desempenho.codIbge LIKE :codIbge", { codIbge: `%${codIbge}%` })
+                .andWhere("desempenho.codIbge LIKE :orgao", { orgao: `%${orgao}%` })
+                .getMany();
+        } else {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .where("desempenho.codIbge LIKE :codIbge", { codIbge: `%${codIbge}%` })
+                .getMany();
+        }
     }
 
-    async findByMissaoId(missaoId) {
-        return await this.repository.find({
-            where: { missaoId },
-            relations: ["municipio", "missao"]
-        });
+    async findByMissaoId(missaoId, orgao) {
+        if (orgao) {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .where("desempenho.missaoId LIKE :missaoId", { missaoId: `%${missaoId}%` })
+                .andWhere("desempenho.codIbge LIKE :orgao", { orgao: `%${orgao}%` })
+                .getMany();
+        } else {
+            return await this.repository.createQueryBuilder("desempenho")
+                .leftJoinAndSelect("desempenho.municipio", "municipio")
+                .leftJoinAndSelect("desempenho.missao", "missao")
+                .where("desempenho.missaoId LIKE :missaoId", { missaoId: `%${missaoId}%` })
+                .getMany();
+        }
     }
 
     async findLatestUpdateDateByMissaoId(missaoId) {
         const result = await this.repository
             .createQueryBuilder("desempenho")
             .select("MAX(desempenho.updated_at)", "latestDate")
-            .where("desempenho.missaoId = :missaoId", { missaoId })
+            .where("desempenho.missaoId LIKE :missaoId", { missaoId: `%${missaoId}%` })
             .getRawOne();
         
         return result?.latestDate ? new Date(result.latestDate) : new Date(0);
@@ -44,7 +73,7 @@ class MunicipioDesempenhoRepository {
         const result = await this.repository
             .createQueryBuilder("desempenho")
             .select("MAX(desempenho.updated_at)", "latestDate")
-            .where("desempenho.codIbge = :codIbge", { codIbge })
+            .where("desempenho.codIbge LIKE :codIbge", { codIbge: `%${codIbge}%` })
             .getRawOne();
         
         return result?.latestDate ? new Date(result.latestDate) : new Date(0);
@@ -67,20 +96,23 @@ class MunicipioDesempenhoRepository {
         return await this.repository
             .createQueryBuilder()
             .delete()
-            .where("codIbge = :codIbge", { codIbge })
+            .where("codIbge LIKE :codIbge", { codIbge: `%${codIbge}%` })
             .execute();
     }
 
-    async findByIbgeCodeAndMissaoId(codIbge, missaoId) {
-        const result = await this.repository
+    async findByIbgeCodeAndMissaoId(codIbge, missaoId, orgao) {
+        const queryBuilder = this.repository
             .createQueryBuilder("desempenho")
             .leftJoinAndSelect("desempenho.municipio", "municipio")
             .leftJoinAndSelect("desempenho.missao", "missao")
-            .where("desempenho.codIbge = :codIbge", { codIbge })
-            .andWhere("desempenho.missaoId = :missaoId", { missaoId })
-            .getOne();
-                    
-        return result;
+            .where("desempenho.codIbge LIKE :codIbge", { codIbge: `%${codIbge}%` })
+            .andWhere("desempenho.missaoId LIKE :missaoId", { missaoId: `%${missaoId}%` });
+            
+        if (orgao) {
+            queryBuilder.andWhere("desempenho.codIbge LIKE :orgao", { orgao: `%${orgao}%` });
+        }
+        
+        return await queryBuilder.getOne();
     }
 
     async findAllWithRelations() {

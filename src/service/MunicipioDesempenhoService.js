@@ -6,8 +6,8 @@ class MunicipioDesempenhoService {
         this.municipioDesempenhoRepository = new MunicipioDesempenhoRepository(connection);
     }
 
-    async findAll() {
-        const desempenhos = await this.municipioDesempenhoRepository.findAll();
+    async findAll(orgao) {
+        const desempenhos = await this.municipioDesempenhoRepository.findAll(orgao);
         return desempenhos.map(desempenho => MunicipioDesempenhoDTO.fromEntity(desempenho));
     }
 
@@ -19,13 +19,13 @@ class MunicipioDesempenhoService {
         return MunicipioDesempenhoDTO.fromEntity(desempenho);
     }
 
-    async findByIbgeCode(codIbge) {
-        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge);
+    async findByIbgeCode(codIbge, orgao) {
+        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge.toUpperCase(), orgao);
         return desempenhos.map(desempenho => MunicipioDesempenhoDTO.fromEntity(desempenho));
     }
 
-    async findByMissaoId(missaoId) {
-        const desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missaoId);
+    async findByMissaoId(missaoId, orgao) {
+        const desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missaoId, orgao);
         return desempenhos.map(desempenho => MunicipioDesempenhoDTO.fromEntity(desempenho));
     }
 
@@ -34,10 +34,11 @@ class MunicipioDesempenhoService {
     }
 
     async getLatestUpdateDateByOrgao(codIbge) {
-        return await this.municipioDesempenhoRepository.findLatestUpdateDateByOrgao(codIbge);
+        return await this.municipioDesempenhoRepository.findLatestUpdateDateByOrgao(codIbge.toUpperCase());
     }
 
     async createDesempenho(desempenhoDTO) {
+        desempenhoDTO.codIbge = desempenhoDTO.codIbge.toUpperCase();
         const entity = desempenhoDTO.toEntity();
         const savedDesempenho = await this.municipioDesempenhoRepository.create(entity);
         return MunicipioDesempenhoDTO.fromEntity(savedDesempenho);
@@ -98,17 +99,17 @@ class MunicipioDesempenhoService {
     }
 
     async deleteByIbgeCode(codIbge) {
-        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge);
+        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge.toUpperCase());
         if (desempenhos.length > 0) {
-            await this.municipioDesempenhoRepository.deleteByIbgeCode(codIbge);
+            await this.municipioDesempenhoRepository.deleteByIbgeCode(codIbge.toUpperCase());
         }
-        return { success: true, message: `All desempenhos for municipality ${codIbge} deleted successfully` };
+        return { success: true, message: `All desempenhos for municipality ${codIbge.toUpperCase()} deleted successfully` };
     }
 
-    async findByIbgeCodeAndMissaoId(codIbge, missaoId) {
-        const desempenho = await this.municipioDesempenhoRepository.findByIbgeCodeAndMissaoId(codIbge, missaoId);
+    async findByIbgeCodeAndMissaoId(codIbge, missaoId, orgao) {
+        const desempenho = await this.municipioDesempenhoRepository.findByIbgeCodeAndMissaoId(codIbge.toUpperCase(), missaoId, orgao);
         if (!desempenho) {
-            throw new Error(`MunicipioDesempenho with codIbge ${codIbge} and missaoId ${missaoId} not found`);
+            throw new Error(`MunicipioDesempenho with codIbge ${codIbge.toUpperCase()} and missaoId ${missaoId} not found`);
         }
         return MunicipioDesempenhoDTO.fromEntity(desempenho);
     }

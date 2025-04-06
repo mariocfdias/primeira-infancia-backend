@@ -6,9 +6,14 @@ class MissoesService {
         this.missoesRepository = new MissoesRepository(connection);
     }
 
-    async findAll() {
-        const missoes = await this.missoesRepository.findAll();
-        return missoes.map(missao => MissoesDTO.fromEntity(missao));
+    async findAll(orgao) {
+        if (orgao) {
+            const missoes = await this.missoesRepository.findAllByOrgao(orgao);
+            return missoes.map(missao => MissoesDTO.fromEntity(missao));
+        } else {
+            const missoes = await this.missoesRepository.findAll();
+            return missoes.map(missao => MissoesDTO.fromEntity(missao));
+        }
     }
 
     async findById(id) {

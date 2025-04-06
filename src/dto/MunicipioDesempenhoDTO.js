@@ -17,7 +17,7 @@ class MunicipioDesempenhoDTO {
     static fromEntity(entity) {
         const dto = MunicipioDesempenhoDTO.builder()
             .withId(entity.id)
-            .withCodIbge(entity.codIbge)
+            .withCodIbge(entity.codIbge ? entity.codIbge.toUpperCase() : entity.codIbge)
             .withMissaoId(entity.missaoId)
             .withValidationStatus(entity.validation_status)
             .withUpdatedAt(entity.updated_at)
@@ -121,7 +121,7 @@ class MunicipioDesempenhoBuilder {
     }
 
     withCodIbge(codIbge) {
-        this.dto.codIbge = codIbge;
+        this.dto.codIbge = codIbge ? codIbge.toUpperCase() : codIbge;
         return this;
     }
 

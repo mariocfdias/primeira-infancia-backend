@@ -6,28 +6,28 @@ class MunicipioService {
         this.municipioRepository = new MunicipioRepository(connection);
     }
 
-    async findAll() {
-        return await this.municipioRepository.findAll();
+    async findAll(orgao) {
+        return await this.municipioRepository.findAll(orgao);
     }
 
     async findById(codIbge) {
-        const municipio = await this.municipioRepository.findOne(codIbge);
+        const municipio = await this.municipioRepository.findOne(codIbge.toUpperCase());
         if (!municipio) {
             return null;
         }
         return municipio;
     }
 
-    async findParticipantes() {
-        return await this.municipioRepository.findParticipantes();
+    async findParticipantes(orgao) {
+        return await this.municipioRepository.findParticipantes(orgao);
     }
 
     async findByIdWithJson(codIbge) {
-        return await this.municipioRepository.findByIdWithJson(codIbge);
+        return await this.municipioRepository.findByIdWithJson(codIbge.toUpperCase());
     }
 
     async findMunicipioCompleto(codIbge) {
-        const municipio = await this.municipioRepository.findByIdWithDesempenhoEMissoes(codIbge);
+        const municipio = await this.municipioRepository.findByIdWithDesempenhoEMissoes(codIbge.toUpperCase());
         
         if (!municipio) {
             return null;
@@ -36,13 +36,13 @@ class MunicipioService {
         return municipio;
     }
 
-    async searchByName(search, limit = 10) {
-        return await this.municipioRepository.searchByName(search, limit);
+    async searchByName(search, limit = 10, orgao) {
+        return await this.municipioRepository.searchByName(search, limit, orgao);
     }
 
     async saveMunicipio(municipioData) {
         const municipio = {
-            codIbge: (municipioData.codIbge || municipioData.cod_ibge).toString(),
+            codIbge: ((municipioData.codIbge || municipioData.cod_ibge).toString()).toUpperCase(),
             nome: municipioData.nome,
             status: municipioData.status,
             dataAlteracao: municipioData.dataAlteracao || municipioData.data_alteracao || null,
@@ -56,9 +56,9 @@ class MunicipioService {
     }
 
     async updateMunicipioJson(codIbge, jsonData) {
-        const municipio = await this.municipioRepository.findByIdWithJson(codIbge);
+        const municipio = await this.municipioRepository.findByIdWithJson(codIbge.toUpperCase());
         if (!municipio) {
-            throw new Error(`Municipio with codIbge ${codIbge} not found`);
+            throw new Error(`Municipio with codIbge ${codIbge.toUpperCase()} not found`);
         }
         municipio.json = JSON.stringify(jsonData);
         return await this.municipioRepository.save(municipio);

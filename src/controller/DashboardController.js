@@ -17,13 +17,21 @@ class DashboardController {
      *   get:
      *     summary: Retorna um panorama geral de todas as missões com contagem de status
      *     tags: [Dashboard]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         description: Filtra resultados por tipo de órgão
      *     responses:
      *       200:
      *         description: Panorama geral de missões
      */
     async getMissionPanorama(req, res) {
         try {
-            const panorama = await this.dashboardService.getMissionPanoramaGeneral();
+            const { orgao } = req.query;
+            const panorama = await this.dashboardService.getMissionPanoramaGeneral(orgao);
             return res.json({ status: 'success', data: panorama });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message });
@@ -67,6 +75,13 @@ class DashboardController {
      *   get:
      *     summary: Retorna o panorama do mapa com distribuição de níveis
      *     tags: [Dashboard]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         description: Filtra resultados por tipo de órgão
      *     responses:
      *       200:
      *         description: Panorama do mapa
@@ -112,7 +127,8 @@ class DashboardController {
      */
     async getMapPanorama(req, res) {
         try {
-            const data = await this.dashboardService.getMapPanorama();
+            const { orgao } = req.query;
+            const data = await this.dashboardService.getMapPanorama(orgao);
             // Only return the desempenho and related data, excluding mapPanorama
             const { desempenho, totalParticipatingPrefeituras, percentageFinishedMissions } = data;
             return res.json({ 

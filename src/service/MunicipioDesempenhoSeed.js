@@ -6,52 +6,148 @@ const { MunicipioDesempenhoDTO } = require('../dto/MunicipioDesempenhoDTO');
 // Mock data for special municipalities
 const municipiosData = [
     {
-        codIbge: "mpce",
+        cod_ibge: "PREFEITURA",
+        nome: "Prefeitura Municipal",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "CAMARA",
+        nome: "Câmara Municipal",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "MPCE",
         nome: "Ministério Público do Estado do Ceará",
         status: "Participante",
-        dataAlteracao: new Date(0).toISOString(),
-        imagemAvatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/13L40cl7VagIjuQtvStsH39omSGaLovvS/view?usp=sharing",
         badges: 0,
         points: 0,
         orgao: true
     },
     {
-        codIbge: "govce",
+        cod_ibge: "GOVCE",
         nome: "Governo do Estado do Ceará",
         status: "Participante",
-        dataAlteracao: new Date(0).toISOString(),
-        imagemAvatar: "https://drive.google.com/file/d/1SPWjwDyovW7DskedzhH_iqSfZQrV1HzC/view?usp=sharing",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1SPWjwDyovW7DskedzhH_iqSfZQrV1HzC/view?usp=sharing",
         badges: 0,
         points: 0,
         orgao: true
     },
     {
-        codIbge: "tcece",
+        cod_ibge: "TCECE",
         nome: "TCE Ceará",
         status: "Participante",
-        dataAlteracao: new Date(0).toISOString(),
-        imagemAvatar: "https://drive.google.com/file/d/1TN-m1leyK6sblCbGYG1G2kPoHq9awG4O/view?usp=sharing",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1TN-m1leyK6sblCbGYG1G2kPoHq9awG4O/view?usp=sharing",
         badges: 0,
         points: 0,
         orgao: true
     },
     {
-        codIbge: "podleg",
-        nome: "Poder Legislativo do Estado do Ceará",
+        cod_ibge: "ASLEG",
+        nome: "Assembleia Legislativa do Estado do Ceará",
         status: "Participante",
-        dataAlteracao: new Date(0).toISOString(),
-        imagemAvatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "DPCE",
+        nome: "Defensoria Pública do Estado do Ceará",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "MPCCE",
+        nome: "Ministério Público de Contas do Estado do Ceará",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "MPTCE",
+        nome: "Ministério Público do Trabalho no Ceará",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "STE",
+        nome: "Superintendência do Trabalho e Emprego",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+        badges: 0,
+        points: 0,
+        orgao: true
+    },
+    {
+        cod_ibge: "TJCE",
+        nome: "Tribunal de Justiça do Estado do Ceará",
+        status: "Participante",
+        data_alteracao: new Date(0).toISOString(),
+        imagem_avatar: "https://drive.google.com/file/d/1-XJf5OKAoJ5DM6O-TJT3kSSpxambkao3/view?usp=sharing",
         badges: 0,
         points: 0,
         orgao: true
     },
 ];
 
+// Helper function to check if a mission applies to a municipality
+function missionAppliesToMunicipality(missionId, municipioCodIbge) {
+    // Make sure municipioCodIbge is uppercase
+    const upperCodIbge = municipioCodIbge.toUpperCase();
+    
+    // Extract the prefix from the mission ID
+    const missionPrefix = missionId.split('-')[0];
+    
+    // List of all possible special prefixes
+    const specialPrefixes = ["PREFEITURA", "CAMARA", "MPCE", "GOVCE", "TCECE", "ASLEG", "DPCE", "MPCCE", "MPTCE", "STE", "TJCE"];
+    
+    // Check if municipality code contains any special prefix
+    const municipioPrefix = specialPrefixes.find(prefix => upperCodIbge.startsWith(prefix));
+    
+    if (municipioPrefix) {
+        // For municipalities with special prefixes, check if mission prefix matches
+        return missionPrefix === municipioPrefix;
+    }
+    
+    // For regular municipalities without special prefixes, apply missions that don't have special prefixes
+    return !specialPrefixes.includes(missionPrefix);
+}
+
 async function seedMunicipioDesempenho(connection) {
     console.log('Starting seed: municipio_desempenho');
     const municipioDesempenhoService = new MunicipioDesempenhoService(connection);
     const missoesService = new MissoesService(connection);
     const municipioService = new MunicipioService(connection);
+    
+    // Track skipped missions by municipality
+    const skippedMissions = {};
     
     try {
         // Get all municipalities from the database
@@ -121,6 +217,19 @@ async function seedMunicipioDesempenho(connection) {
         for (const municipio of fullyCompletedMunicipios) {
             for (const missao of missoes) {
                 try {
+                    // Skip if the mission doesn't apply to this municipality
+                    if (!missionAppliesToMunicipality(missao.id, municipio.codIbge)) {
+                        console.log(`Skipping mission ${missao.id} for municipality ${municipio.codIbge} - Mission prefix doesn't match`);
+                        
+                        // Track skipped mission
+                        if (!skippedMissions[missao.id]) {
+                            skippedMissions[missao.id] = [];
+                        }
+                        skippedMissions[missao.id].push(municipio.codIbge);
+                        
+                        continue;
+                    }
+                    
                     // Create evidence array based on missao.evidencias
                     let evidence = [];
                     if (missao.evidencias && Array.isArray(missao.evidencias)) {
@@ -160,6 +269,19 @@ async function seedMunicipioDesempenho(connection) {
         for (const municipio of remainingMunicipios) {
             for (const missao of missoes) {
                 try {
+                    // Skip if the mission doesn't apply to this municipality
+                    if (!missionAppliesToMunicipality(missao.id, municipio.codIbge)) {
+                        console.log(`Skipping mission ${missao.id} for municipality ${municipio.codIbge} - Mission prefix doesn't match`);
+                        
+                        // Track skipped mission
+                        if (!skippedMissions[missao.id]) {
+                            skippedMissions[missao.id] = [];
+                        }
+                        skippedMissions[missao.id].push(municipio.codIbge);
+                        
+                        continue;
+                    }
+                    
                     // Create desempenho with random status (mostly VALID for demo purposes)
                     const random = Math.random();
                     let status;
@@ -270,7 +392,14 @@ async function seedMunicipioDesempenho(connection) {
             }
         }
 
-        // Update status to "Participante" for municipalities with completed mission
+        // Log all skipped missions by municipality
+        console.log('\n===== SKIPPED MISSIONS SUMMARY =====');
+        for (const [missaoId, municipioCodes] of Object.entries(skippedMissions)) {
+            console.log(`\nMission ${missaoId} was skipped for ${municipioCodes.length} municipalities:`);
+            console.log(municipioCodes.join(', '));
+        }
+        console.log('\n===================================');
+
     } catch (error) {
         console.error('Error in municipio_desempenho seed:', error.message);
     }

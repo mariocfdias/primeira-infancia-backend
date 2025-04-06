@@ -21,7 +21,8 @@ module.exports = new EntitySchema({
             type: "varchar"
         },
         qnt_pontos: {
-            type: "int"
+            type: "int",
+            default: 0
         },
         link_formulario: {
             type: "varchar",

@@ -18,6 +18,14 @@ class MunicipioDesempenhoController {
      *   get:
      *     summary: Retorna todos os registros de desempenho
      *     tags: [Desempenhos]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Lista de desempenhos
@@ -42,9 +50,12 @@ class MunicipioDesempenhoController {
      */
     async getAllDesempenhos(req, res) {
         try {
-            const desempenhos = await this.municipioDesempenhoService.findAll();
+            const { orgao } = req.query;
+            console.log(`Fetching all desempenhos, orgao: ${orgao || 'not specified'}`);
+            const desempenhos = await this.municipioDesempenhoService.findAll(orgao);
             return res.json({ status: 'success', data: desempenhos });
         } catch (error) {
+            console.error('Error fetching all desempenhos:', error.message);
             return res.status(500).json({ status: 'error', message: error.message });
         }
     }
@@ -114,6 +125,13 @@ class MunicipioDesempenhoController {
      *           type: string
      *         required: true
      *         description: Código IBGE do município
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Lista de desempenhos do município
@@ -139,9 +157,12 @@ class MunicipioDesempenhoController {
     async getDesempenhosByIbgeCode(req, res) {
         try {
             const { codIbge } = req.params;
-            const desempenhos = await this.municipioDesempenhoService.findByIbgeCode(codIbge);
+            const { orgao } = req.query;
+            console.log(`Fetching desempenhos for codIbge ${codIbge.toUpperCase()}, orgao: ${orgao || 'not specified'}`);
+            const desempenhos = await this.municipioDesempenhoService.findByIbgeCode(codIbge, orgao);
             return res.json({ status: 'success', data: desempenhos });
         } catch (error) {
+            console.error('Error fetching desempenhos:', error.message);
             return res.status(500).json({ status: 'error', message: error.message });
         }
     }
@@ -159,6 +180,13 @@ class MunicipioDesempenhoController {
      *           type: string
      *         required: true
      *         description: ID da missão
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Lista de desempenhos da missão
@@ -184,9 +212,12 @@ class MunicipioDesempenhoController {
     async getDesempenhosByMissaoId(req, res) {
         try {
             const { missaoId } = req.params;
-            const desempenhos = await this.municipioDesempenhoService.findByMissaoId(missaoId);
+            const { orgao } = req.query;
+            console.log(`Fetching desempenhos for missaoId ${missaoId}, orgao: ${orgao || 'not specified'}`);
+            const desempenhos = await this.municipioDesempenhoService.findByMissaoId(missaoId, orgao);
             return res.json({ status: 'success', data: desempenhos });
         } catch (error) {
+            console.error('Error fetching desempenhos:', error.message);
             return res.status(500).json({ status: 'error', message: error.message });
         }
     }
@@ -586,6 +617,13 @@ class MunicipioDesempenhoController {
      *           type: string
      *         required: true
      *         description: ID da missão
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Dados do desempenho
@@ -615,8 +653,9 @@ class MunicipioDesempenhoController {
     async getDesempenhoByIbgeCodeAndMissaoId(req, res) {
         try {
             const { codIbge, missaoId } = req.params;
-            console.log(`Fetching desempenho for codIbge ${codIbge} and missaoId ${missaoId}`);
-            const desempenho = await this.municipioDesempenhoService.findByIbgeCodeAndMissaoId(codIbge, missaoId);
+            const { orgao } = req.query;
+            console.log(`Fetching desempenho for codIbge ${codIbge.toUpperCase()} and missaoId ${missaoId}, orgao: ${orgao}`);
+            const desempenho = await this.municipioDesempenhoService.findByIbgeCodeAndMissaoId(codIbge, missaoId, orgao);
             console.log('Found desempenho:', JSON.stringify(desempenho));
             return res.json({ status: 'success', data: desempenho });
         } catch (error) {

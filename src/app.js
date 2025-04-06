@@ -5,13 +5,14 @@ const { setupSwagger } = require('./swagger');
 const { setupJobs } = require('./jobs');
 const seedMunicipios = require('./service/MunicipioSeed');
 const { seedMunicipioDesempenho } = require('./service/MunicipioDesempenhoSeed');
+const { seedOrgaosDesempenho } = require('./service/OrgaosDesempenhoSeed');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Job configuration
-const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwqlQMpIBfX_cYkfbM5kCUY5kq3Zqzs0AVwbc2HngwuWFRJdni_QDwwS3i_6BDPjbSJ/exec';
+const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwzjtHVQDC5fhJhvypIIZQ0synNEHlV7Y836XQeEeeaf636jtPKeDHwKjaDteSDzpBw/exec';
 const jobConfig = {
     FETCH_MUNICIPIOS_URL: SCRIPT_URL,
     UPDATE_JSON_URL: SCRIPT_URL,
@@ -51,7 +52,8 @@ async function startServer() {
         
         // Setup scheduled jobs
         await setupJobs(connection, jobConfig);
-        // await seedMunicipioDesempenho(connection);
+        await seedMunicipioDesempenho(connection);
+        await seedOrgaosDesempenho(connection);
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

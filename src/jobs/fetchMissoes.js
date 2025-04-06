@@ -145,59 +145,113 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                 console.log(`Buscando missões para ${municipio.nome}: ${fetchUrl}`);
                 
                 const response = await fetch(fetchUrl);
-                const data = await response.json();
+                // Add debug info for the response
+                console.log(`Response status: ${response.status} ${response.statusText}`);
                 
-                if (data.status === 'success' && Array.isArray(data.data)) {
-                    console.log(`Recebidas ${data.data.length} missões para processar para ${municipio.nome}`);
+                try {
+                    const data = await response.json();
+                    console.log(`Response data type: ${typeof data}`);
                     
-                    // Process and save each mission
-                    for (const missaoData of data.data) {
-                        try {
-                            // Check if mission already exists
-                            let existingMissao;
+                    if (data.status === 'success' && Array.isArray(data.data)) {
+                        console.log(`Recebidas ${data.data.length} missões para processar para ${municipio.nome}`);
+                        
+                        // Process and save each mission
+                        for (const missaoData of data.data) {
                             try {
-                                existingMissao = await missoesService.findById(missaoData.id);
-                            } catch (error) {
-                                // Mission doesn't exist yet
-                                existingMissao = null;
+                                // Check if mission already exists
+                                let existingMissao;
+                                try {
+                                    existingMissao = await missoesService.findById(missaoData.id);
+                                } catch (error) {
+                                    // Mission doesn't exist yet
+                                    existingMissao = null;
+                                }
+                                
+                                // Enhanced debugging: log the missao data with more detail
+                                console.log('Processing mission data:');
+                                console.log('Mission ID:', missaoData.id);
+                                console.log('Raw missaoData:', JSON.stringify(missaoData, null, 2));
+                                
+                                // Create a DTO from the received data
+                                try {
+                                    const missaoDTO = MissoesDTO.builder()
+                                        .withId(missaoData.id)
+                                        .withCategoria(missaoData.categoria)
+                                        .withDescricaoCategoria(missaoData.descricao_da_categoria)
+                                        .withEmblemaCategoria(missaoData.emblema_da_categoria)
+                                        .withDescricaoMissao(missaoData.descricao_da_missao)
+                                        .withQuantidadePontos(missaoData.qnt_pontos)
+                                        .withLinkFormulario(missaoData.link_formulario)
+                                        .withEvidencias(missaoData.evidencias || [])
+                                        .build();
+                                    
+                                    // Save or update the mission in the database
+                                    if (existingMissao) {
+                                        await missoesService.updateMissao(missaoData.id, missaoDTO);
+                                        console.log(`Atualizada missão existente: ${missaoData.id} para ${municipio.nome}`);
+                                    } else {
+                                        await missoesService.createMissao(missaoDTO);
+                                        console.log(`Salva nova missão: ${missaoData.id} para ${municipio.nome}`);
+                                    }
+                                } catch (dtoError) {
+                                    console.error(`Erro ao criar DTO para missão ${missaoData.id}:`, dtoError.message);
+                                    console.error('DTO Error stack:', dtoError.stack);
+                                    
+                                    // Check each field for potential issues
+                                    console.error('Problematic fields check:');
+                                    const fields = [
+                                        'id', 'categoria', 'descricao_da_categoria', 'emblema_da_categoria',
+                                        'descricao_da_missao', 'qnt_pontos', 'link_formulario', 'evidencias'
+                                    ];
+                                    
+                                    for (const field of fields) {
+                                        console.error(`${field}:`, typeof missaoData[field], missaoData[field]);
+                                    }
+                                    
+                                    throw dtoError; // Re-throw to be caught by outer catch block
+                                }
+                            } catch (missionError) {
+                                console.error(`Erro ao processar missão ${missaoData.id} para ${municipio.nome}:`, missionError.message);
+                                console.error('Error details:', missionError);
+                                console.error('Data that caused the error:');
+                                try {
+                                    console.error(JSON.stringify(missaoData, null, 2));
+                                } catch (jsonError) {
+                                    console.error('Could not stringify missaoData:', jsonError.message);
+                                    console.error('missaoData keys:', Object.keys(missaoData));
+                                    // Log each property individually to find problematic ones
+                                    for (const key in missaoData) {
+                                        try {
+                                            console.error(`${key}:`, JSON.stringify(missaoData[key]));
+                                        } catch (e) {
+                                            console.error(`${key}: [Cannot stringify - ${e.message}]`);
+                                        }
+                                    }
+                                }
+                                // Registrar a missão que falhou
+                                const errorType = missionError.name === 'QueryFailedError' || 
+                                                 missionError.name === 'EntityNotFoundError' || 
+                                                 missionError.message.includes('SQLite') || 
+                                                 missionError.message.includes('typeorm') ? 
+                                                 'Database Error' : 'Processing Error';
+                                
+                                falhasMissoes.push({
+                                    id: missaoData.id || 'ID desconhecido',
+                                    municipio: municipio.nome,
+                                    erro: missionError.message,
+                                    tipo_erro: errorType,
+                                    url: fetchUrl
+                                });
                             }
-                            
-                            console.log({missaoData});
-                            // Create a DTO from the received data
-                            const missaoDTO = MissoesDTO.builder()
-                                .withId(missaoData.id)
-                                .withCategoria(missaoData.categoria)
-                                .withDescricaoCategoria(missaoData.descricao_da_categoria)
-                                .withEmblemaCategoria(missaoData.emblema_da_categoria)
-                                .withDescricaoMissao(missaoData.descricao_da_missao)
-                                .withQuantidadePontos(missaoData.qnt_pontos)
-                                .withLinkFormulario(missaoData.link_formulario)
-                                .withEvidencias(missaoData.evidencias || [])
-                                .build();
-                            
-                            // Save or update the mission in the database
-                            if (existingMissao) {
-                                await missoesService.updateMissao(missaoData.id, missaoDTO);
-                                console.log(`Atualizada missão existente: ${missaoData.id} para ${municipio.nome}`);
-                            } else {
-                                await missoesService.createMissao(missaoDTO);
-                                console.log(`Salva nova missão: ${missaoData.id} para ${municipio.nome}`);
-                            }
-                        } catch (missionError) {
-                            console.error(`Erro ao processar missão ${missaoData.id} para ${municipio.nome}:`, missionError.message);
-                            // Registrar a missão que falhou
-                            falhasMissoes.push({
-                                id: missaoData.id,
-                                municipio: municipio.nome,
-                                erro: missionError.message,
-                                url: fetchUrl
-                            });
                         }
+                        
+                        console.log(`Processadas com sucesso ${data.data.length} missões para ${municipio.nome}`);
+                    } else {
+                        console.log(`Nenhuma missão para processar ou formato inválido recebido para ${municipio.nome}`);
                     }
-                    
-                    console.log(`Processadas com sucesso ${data.data.length} missões para ${municipio.nome}`);
-                } else {
-                    console.log(`Nenhuma missão para processar ou formato inválido recebido para ${municipio.nome}`);
+                } catch (dataError) {
+                    console.error(`Erro ao processar dados recebidos para ${municipio.nome}:`, dataError.message);
+                    // Continue with the next municipality
                 }
             } catch (municipioError) {
                 console.error(`Erro ao processar município ${municipio.nome}:`, municipioError.message);
@@ -212,8 +266,25 @@ async function fetchMissoes(connection, url, extraParams = {}) {
     if (falhasMissoes.length > 0) {
         console.log('=== RESUMO DE MISSÕES COM FALHA ===');
         console.log(`Total de missões com falha: ${falhasMissoes.length}`);
+        
+        // Agrupar falhas por tipo de erro
+        const errosPorTipo = {};
+        falhasMissoes.forEach(falha => {
+            if (!errosPorTipo[falha.tipo_erro]) {
+                errosPorTipo[falha.tipo_erro] = 0;
+            }
+            errosPorTipo[falha.tipo_erro]++;
+        });
+        
+        // Mostrar resumo por tipo de erro
+        console.log('Resumo por tipo de erro:');
+        for (const tipo in errosPorTipo) {
+            console.log(`- ${tipo}: ${errosPorTipo[tipo]}`);
+        }
+        
+        // Detalhes de cada falha
         falhasMissoes.forEach((falha, index) => {
-            console.log(`${index + 1}. Missão ID: ${falha.id} | Município: ${falha.municipio} | URL: ${falha.url} | Erro: ${falha.erro}`);
+            console.log(`${index + 1}. Missão ID: ${falha.id} | Município: ${falha.municipio} | Tipo: ${falha.tipo_erro} | Erro: ${falha.erro}`);
         });
         console.log('===================================');
     } else {

@@ -29,12 +29,23 @@ class DashboardService {
         return (now - this.mapPanoramaCache.timestamp) < this.mapPanoramaCache.ttl;
     }
 
-    async getMissionPanoramaGeneral() {
+    async getMissionPanoramaGeneral(orgao) {
         // Get all missions
-        const missoes = await this.missoesRepository.findAll();
+        let missoes;
+        if (orgao) {
+            missoes = await this.missoesRepository.findAllByOrgao(orgao);
+        } else {
+            missoes = await this.missoesRepository.findAll();
+        }
         
         // Get all municipios to count total
-        const municipios = await this.municipioRepository.findAll();
+        let municipios = await this.municipioRepository.findAll();
+        
+        // Filter municipios by orgao if provided
+        if (orgao) {
+            municipios = municipios.filter(municipio => municipio.codIbge.includes(orgao));
+        }
+        
         const totalMunicipios = municipios.length;
         
         // Create mission panorama for each mission
@@ -42,7 +53,12 @@ class DashboardService {
         
         for (const missao of missoes) {
             // Get all desempenhos for this mission
-            const desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missao.id);
+            let desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missao.id);
+            
+            // Filter desempenhos by orgao if provided
+            if (orgao) {
+                desempenhos = desempenhos.filter(desempenho => desempenho.codIbge.includes(orgao));
+            }
             
             // Count by status
             const countValid = desempenhos.filter(d => d.validation_status === 'VALID').length;
@@ -149,24 +165,41 @@ class DashboardService {
             .build();
     }
 
-    // Método getMapPanorama modificado para usar cache
-    async getMapPanorama() {
-        // Verificar se há dados em cache válidos
-        if (this.isMapPanoramaCacheValid()) {
+    // Método getMapPanorama modificado para usar cache e aceitar filtro de órgão
+    async getMapPanorama(orgao) {
+        // Se não tiver filtro de órgão e houver cache válido, retorne o cache
+        if (!orgao && this.isMapPanoramaCacheValid()) {
             return this.mapPanoramaCache.data;
         }
         
         // Obter todos os municípios e missões em uma única consulta
-        const [municipios, missoes] = await Promise.all([
-            this.municipioRepository.findAll(),
-            this.missoesRepository.findAll()
-        ]);
+        let municipios;
+        let missoes;
+        
+        if (orgao) {
+            [municipios, missoes] = await Promise.all([
+                this.municipioRepository.findAll(),
+                this.missoesRepository.findAllByOrgao(orgao)
+            ]);
+            // Ainda filtramos municipios pelo codIbge
+            municipios = municipios.filter(municipio => municipio.codIbge.includes(orgao));
+        } else {
+            [municipios, missoes] = await Promise.all([
+                this.municipioRepository.findAll(),
+                this.missoesRepository.findAll()
+            ]);
+        }
         
         const totalMissoes = missoes.length;
         const totalMunicipios = municipios.length;
         
         // Obter todos os desempenhos de uma vez, em vez de consultar para cada município
-        const allDesempenhos = await this.municipioDesempenhoRepository.findAllWithRelations();
+        let allDesempenhos = await this.municipioDesempenhoRepository.findAllWithRelations();
+        
+        // Aplicar filtro de órgão nos desempenhos se fornecido
+        if (orgao) {
+            allDesempenhos = allDesempenhos.filter(desempenho => desempenho.codIbge.includes(orgao));
+        }
         
         // Agrupar desempenhos por codIbge para acesso rápido
         const desempenhosByIbge = {};
@@ -300,14 +333,12 @@ class DashboardService {
             // Encontrar o nível apropriado para os pontos
             let levelIndex;
             
-            console.log({points,pointsPerLevel, levelIndex: (points / pointsPerLevel) + 1})
             // Se points é múltiplo exato de pointsPerLevel, coloca no próximo nível
             if (points % pointsPerLevel === 0) {
                 levelIndex = (points / pointsPerLevel) + 2;
             } else {
                 levelIndex = Math.floor((points - 1) / pointsPerLevel) + 2;
             }
-            console.log(levelDistribution[4])
 
             // Garantir que não exceda o array
             if (levelIndex < levelDistribution.length) {
@@ -316,23 +347,29 @@ class DashboardService {
             }
         }
 
-
         // Criar o panorama de desempenho
         const desempenhoPanorama = DesempenhoPanoramaDTO.builder()
             .withLevelDistribution(levelDistribution)
             .withTotalMunicipios(totalMunicipios)
             .build();
         
-        // Armazenar resultado no cache antes de retornar
-        this.mapPanoramaCache.data = {
+        // Armazenar resultado no cache apenas se não houver filtro de órgão
+        if (!orgao) {
+            this.mapPanoramaCache.data = {
+                mapPanorama,
+                desempenho: desempenhoPanorama,
+                totalParticipatingPrefeituras,
+                percentageFinishedMissions
+            };
+            this.mapPanoramaCache.timestamp = Date.now();
+        }
+        
+        return {
             mapPanorama,
             desempenho: desempenhoPanorama,
             totalParticipatingPrefeituras,
             percentageFinishedMissions
         };
-        this.mapPanoramaCache.timestamp = Date.now();
-        
-        return this.mapPanoramaCache.data;
     }
 
     async getMapPanoramaByIbgeCode(codIbge) {
@@ -390,7 +427,6 @@ class DashboardService {
             if (totalPoints % pointsPerLevel === 0) {
                 level = totalPoints / pointsPerLevel;
             } else {
-                console.log({municipio,level})
                 level = Math.floor((totalPoints - 1) / pointsPerLevel) + 1;
             }
         }

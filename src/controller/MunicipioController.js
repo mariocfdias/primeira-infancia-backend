@@ -17,6 +17,14 @@ class MunicipioController {
      *   get:
      *     summary: Retorna todos os municípios (excluindo órgãos)
      *     tags: [Municipios]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
      *     responses:
      *       200:
      *         description: Lista de municípios (excluindo órgãos)
@@ -41,7 +49,8 @@ class MunicipioController {
      */
     async getAllMunicipios(req, res) {
         try {
-            const municipios = await this.municipioService.findAll();
+            const { orgao } = req.query;
+            const municipios = await this.municipioService.findAll(orgao);
             return res.json({ status: 'success', data: municipios });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message });
@@ -150,12 +159,117 @@ class MunicipioController {
     async getMunicipioByIdWithJson(req, res) {
         try {
             const { ibge } = req.params;
-            console.log({codIbge: ibge})
+            console.log({codIbge: ibge.toUpperCase()})
             const municipio = await this.municipioService.findMunicipioCompleto(ibge);
             if (!municipio) {
                 return res.status(404).json({ status: 'error', message: 'Municipio não encontrado' });
             }
             return res.json({ status: 'success', data: municipio });
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message });
+        }
+    }
+
+    /**
+     * @swagger
+     * /municipios/search:
+     *   get:
+     *     summary: Busca municípios por nome
+     *     tags: [Municipios]
+     *     parameters:
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: Texto para busca por nome
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           default: 10
+     *         required: false
+     *         description: Número máximo de resultados a retornar
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
+     *     responses:
+     *       200:
+     *         description: Lista de municípios que correspondem à busca
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Municipio'
+     *       500:
+     *         description: Erro no servidor
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    async searchMunicipios(req, res) {
+        try {
+            const { search, limit, orgao } = req.query;
+            const municipios = await this.municipioService.searchByName(search, Number(limit) || 10, orgao);
+            return res.json({ status: 'success', data: municipios });
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message });
+        }
+    }
+
+    /**
+     * @swagger
+     * /municipios/participantes:
+     *   get:
+     *     summary: Retorna todos os municípios participantes
+     *     tags: [Municipios]
+     *     parameters:
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [PREFEITURA, CAMARA]
+     *         required: false
+     *         description: Filtrar por tipo de órgão (PREFEITURA ou CAMARA)
+     *     responses:
+     *       200:
+     *         description: Lista de municípios participantes
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Municipio'
+     *       500:
+     *         description: Erro no servidor
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    async getParticipantes(req, res) {
+        try {
+            const { orgao } = req.query;
+            const municipios = await this.municipioService.findParticipantes(orgao);
+            return res.json({ status: 'success', data: municipios });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: error.message });
         }
