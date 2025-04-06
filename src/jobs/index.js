@@ -24,9 +24,9 @@ async function setupJobs(connection, config) {
     console.log('Setting up scheduled jobs...');
 
     // Run fetchMunicipios job every 5 minutes
-    // cron.schedule('*/5 * * * *', () => {
-    //     fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
-    // });
+    cron.schedule('*/5 * * * *', () => {
+        fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
+    });
 
     // // Run autofetch job every 5 minutes
     cron.schedule('*/5 * * * *', () => {
@@ -43,15 +43,15 @@ async function setupJobs(connection, config) {
     //     fetchEventos(connection, FETCH_EVENTOS_URL);
     // });
 
-    // // Run fetchMissoes job every hour
-    // cron.schedule('0 * * * *', () => {
-    //     fetchMissoes(connection, FETCH_MISSOES_URL);
-    // });
+    // Run fetchMissoes job every hour
+    cron.schedule('0 * * * *', () => {
+        fetchMissoes(connection, FETCH_MISSOES_URL);
+    });
 
-    // // Run fetchMissaoDesempenho job every hour
-    // cron.schedule('0 * * * *', () => {
-    //     fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
-    // });
+    // Run fetchMissaoDesempenho job every hour
+    cron.schedule('0 * * * *', () => {
+        fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
+    });
 
     // Run the jobs immediately on startup
     await runJobsImmediately(connection, config).catch(err => {
@@ -79,21 +79,21 @@ async function runJobsImmediately(connection, config) {
         console.log('Starting sequential job execution...');
 
         // Execute jobs in sequence, waiting for each to complete
-        // await fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
-        // console.log('fetchMunicipios job completed');
+        await fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
+        console.log('fetchMunicipios job completed');
 
         // Uncomment if needed
         // await updateJsonMunicipio(connection, UPDATE_JSON_URL);
         // console.log('updateJsonMunicipio job completed');
 
-        // await fetchMissoes(connection, FETCH_MISSOES_URL);
-        // console.log('fetchMissoes job completed');
+        await fetchMissoes(connection, FETCH_MISSOES_URL);
+        console.log('fetchMissoes job completed');
 
         await fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
         console.log('fetchMissaoDesempenho job completed');
 
-        // await fetchEventos(connection, FETCH_EVENTOS_URL);
-        // console.log('fetchEventos job completed');
+        await fetchEventos(connection, FETCH_EVENTOS_URL);
+        console.log('fetchEventos job completed');
 
         console.log('All startup jobs completed successfully');
     } catch (error) {
