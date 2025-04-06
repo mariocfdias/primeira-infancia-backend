@@ -12,7 +12,7 @@ const { ORG_IBGE_CODES } = require('../service/MunicipioDesempenhoSeed');
  */
 async function fetchMissaoDesempenho(connection, url) {
     console.log('Starting job: fetchMissaoDesempenho');
-    
+
     const municipioDesempenhoService = new MunicipioDesempenhoService(connection);
     const missoesService = new MissoesService(connection);
     const municipioService = new MunicipioService(connection);
@@ -133,7 +133,7 @@ async function fetchMissaoDesempenho(connection, url) {
         // Get all missions from the database
         const missoes = await missoesService.findAll();
         console.log(`Found ${missoes.length} missions to process`);
-        
+
         // Process each mission only for PREFEITURA and CAMARA
         for (const missao of missoes) {
             try {
@@ -142,35 +142,34 @@ async function fetchMissaoDesempenho(connection, url) {
                     console.log(`Skipping mission ${missao.id} as it's not for PREFEITURA or CAMARA`);
                     continue;
                 }
-                
+
                 // Get the latest update date for this specific mission using TypeORM query
                 const latestDate = await municipioDesempenhoService.getLatestUpdateDateByMissaoId(missao.id);
                 const dateParam = latestDate.toISOString();
                 console.log(`Fetching mission performance data for mission ${missao.id} newer than: ${dateParam}`);
-                
+
                 // Make the API request with the request type, date parameter, and missao parameter
-                const fetchUrl = `${url}?request=missao_desempenho&date=${encodeURIComponent(dateParam)}&missao=${encodeURIComponent(missao.id)}`;
+                const fetchUrl = `${url}?request=missao_desempenho&date=${encodeURIComponent(dateParam)}&missao=${encodeURIComponent(missao.id)}&orgao=${missao.id.split("-")[0]}`;
                 console.log(`Fetching from URL for mission ${missao.id}: ${fetchUrl}`);
-                
+
                 const response = await fetch(fetchUrl);
                 const data = await response.json();
-                
+
                 if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
                     console.log(`Received ${data.data.length} performance records for mission ${missao.id}`);
-                    
+
                     // Process and save each performance record
                     for (const desempenhoData of data.data) {
                         try {
                             // Skip organizations that are in the ORG_IBGE_CODES list
-                            if (ORG_IBGE_CODES.includes(desempenhoData.codIbge)) {
-                                console.log(`Skipping organization ${desempenhoData.codIbge} for mission ${desempenhoData.missaoId} - using seeded data instead`);
-                                continue;
-                            }
-                            
+
+
                             // Check if a record with the same codIbge and missaoId already exists
+                            console.log({ibgeUPperCase: desempenhoData.codIbge})
                             const existingDesempenhos = await municipioDesempenhoService.findByIbgeCode(desempenhoData.codIbge);
                             const existingDesempenho = existingDesempenhos.find(d => d.missaoId === desempenhoData.missaoId);
-                            
+
+                            desempenhoData.codIbge = `${missao.id.split("-")[0]}-${desempenhoData.codIbge}`
                             // Create a DTO from the received data
                             const desempenhoDTO = MunicipioDesempenhoDTO.builder()
                                 .withCodIbge(desempenhoData.codIbge)
@@ -179,7 +178,7 @@ async function fetchMissaoDesempenho(connection, url) {
                                 .withUpdatedAt(desempenhoData.updated_at || new Date())
                                 .withEvidence(desempenhoData.evidence || [])
                                 .build();
-                            
+
                             // If the record exists, update it; otherwise, create a new one
                             if (existingDesempenho) {
                                 desempenhoDTO.id = existingDesempenho.id;
@@ -189,7 +188,7 @@ async function fetchMissaoDesempenho(connection, url) {
                                 await municipioDesempenhoService.createDesempenho(desempenhoDTO);
                                 console.log(`Saved new performance record for municipality ${desempenhoData.codIbge}, mission ${desempenhoData.missaoId}`);
                             }
-                            
+
                             // Update municipality points and badges by recalculating from all completed missions
                             try {
                                 // Get the municipality
@@ -198,11 +197,11 @@ async function fetchMissaoDesempenho(connection, url) {
                                     // Get all completed missions for this municipality
                                     const allDesempenhos = await municipioDesempenhoService.findByIbgeCode(desempenhoData.codIbge);
                                     const completedDesempenhos = allDesempenhos.filter(d => d.validation_status === 'VALID');
-                                    
+
                                     // Calculate total points and badges from completed missions
                                     let totalPoints = 0;
                                     const completedMissionIds = new Set();
-                                    
+
                                     // For each completed mission, add its points
                                     for (const completedDesempenho of completedDesempenhos) {
                                         try {
@@ -213,17 +212,17 @@ async function fetchMissaoDesempenho(connection, url) {
                                             console.error(`Error fetching mission ${completedDesempenho.missaoId}:`, missionError.message);
                                         }
                                     }
-                                    
+
                                     // Count unique badges (one badge per completed mission)
                                     const badgeCount = completedMissionIds.size;
-                                    
+
                                     // Update municipality with calculated points and badges
                                     const updatedMunicipio = {
                                         ...municipio,
                                         points: totalPoints,
                                         badges: badgeCount
                                     };
-                                    
+
                                     await municipioService.saveMunicipio(updatedMunicipio);
                                     console.log(`Updated municipality ${desempenhoData.codIbge} with recalculated points (${totalPoints}) and badges (${badgeCount})`);
                                 } else {
@@ -237,7 +236,7 @@ async function fetchMissaoDesempenho(connection, url) {
                             console.error(error.stack);
                         }
                     }
-                    
+
                     console.log(`Successfully processed ${data.data.length} performance records for mission ${missao.id}`);
                 } else {
                     console.log(`No performance data to process or invalid format received for mission ${missao.id}`);
@@ -246,7 +245,7 @@ async function fetchMissaoDesempenho(connection, url) {
                 console.error(`Error processing mission ${missao.id}:`, missionError.message);
             }
         }
-        
+
         // Process each organization in municipiosData
         for (const municipio of municipiosData) {
             try {
@@ -255,29 +254,29 @@ async function fetchMissaoDesempenho(connection, url) {
                     console.log(`Skipping ${municipio.cod_ibge} as it's processed differently`);
                     continue;
                 }
-                
+
                 // Get the latest update date for this organization
                 const latestDate = await municipioDesempenhoService.getLatestUpdateDateByOrgao(municipio.cod_ibge) || new Date(0);
                 const dateParam = latestDate.toISOString();
                 console.log(`Fetching performance data for organization ${municipio.cod_ibge} newer than: ${dateParam}`);
-                
+
                 // Use different URL format for organizations
                 const fetchUrl = `${url}?request=missao_desempenho&orgao=${municipio.cod_ibge}`;
                 console.log(`Fetching from URL for organization ${municipio.cod_ibge}: ${fetchUrl}`);
-                
+
                 const response = await fetch(fetchUrl);
                 const data = await response.json();
-                
+
                 if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
                     console.log(`Received ${data.data.length} performance records for organization ${municipio.cod_ibge}`);
-                    
+
                     // Process and save each performance record
                     for (const desempenhoData of data.data) {
                         try {
                             // Check if a record with the same codIbge and missaoId already exists
                             const existingDesempenhos = await municipioDesempenhoService.findByIbgeCode(desempenhoData.codIbge);
                             const existingDesempenho = existingDesempenhos.find(d => d.missaoId === desempenhoData.missaoId);
-                            
+
                             // Create a DTO from the received data
                             const desempenhoDTO = MunicipioDesempenhoDTO.builder()
                                 .withCodIbge(desempenhoData.codIbge)
@@ -286,17 +285,18 @@ async function fetchMissaoDesempenho(connection, url) {
                                 .withUpdatedAt(desempenhoData.updated_at || new Date())
                                 .withEvidence(desempenhoData.evidence || [])
                                 .build();
-                            
+
                             // If the record exists, update it; otherwise, create a new one
                             if (existingDesempenho) {
                                 desempenhoDTO.id = existingDesempenho.id;
                                 await municipioDesempenhoService.updateDesempenho(existingDesempenho.id, desempenhoDTO);
                                 console.log(`Updated existing performance record for organization ${desempenhoData.codIbge}, mission ${desempenhoData.missaoId}`);
                             } else {
+                                console.log(desempenhoDTO)
                                 await municipioDesempenhoService.createDesempenho(desempenhoDTO);
                                 console.log(`Saved new performance record for organization ${desempenhoData.codIbge}, mission ${desempenhoData.missaoId}`);
                             }
-                            
+
                             // Update organization points and badges
                             try {
                                 // Get the organization
@@ -305,11 +305,11 @@ async function fetchMissaoDesempenho(connection, url) {
                                     // Get all completed missions for this organization
                                     const allDesempenhos = await municipioDesempenhoService.findByIbgeCode(desempenhoData.codIbge);
                                     const completedDesempenhos = allDesempenhos.filter(d => d.validation_status === 'VALID');
-                                    
+
                                     // Calculate total points and badges from completed missions
                                     let totalPoints = 0;
                                     const completedMissionIds = new Set();
-                                    
+
                                     // For each completed mission, add its points
                                     for (const completedDesempenho of completedDesempenhos) {
                                         try {
@@ -320,17 +320,17 @@ async function fetchMissaoDesempenho(connection, url) {
                                             console.error(`Error fetching mission ${completedDesempenho.missaoId}:`, missionError.message);
                                         }
                                     }
-                                    
+
                                     // Count unique badges (one badge per completed mission)
                                     const badgeCount = completedMissionIds.size;
-                                    
+
                                     // Update organization with calculated points and badges
                                     const updatedOrg = {
                                         ...org,
                                         points: totalPoints,
                                         badges: badgeCount
                                     };
-                                    
+
                                     await municipioService.saveMunicipio(updatedOrg);
                                     console.log(`Updated organization ${desempenhoData.codIbge} with recalculated points (${totalPoints}) and badges (${badgeCount})`);
                                 } else {
@@ -344,7 +344,7 @@ async function fetchMissaoDesempenho(connection, url) {
                             console.error(error.stack);
                         }
                     }
-                    
+
                     console.log(`Successfully processed ${data.data.length} performance records for organization ${municipio.cod_ibge}`);
                 } else {
                     console.log(`No performance data to process or invalid format received for organization ${municipio.cod_ibge}`);
@@ -356,8 +356,8 @@ async function fetchMissaoDesempenho(connection, url) {
     } catch (error) {
         console.error('Error in fetchMissaoDesempenho job:', error.message);
     }
-    
+
     console.log('Finished job: fetchMissaoDesempenho');
 }
 
-module.exports = fetchMissaoDesempenho; 
+module.exports = fetchMissaoDesempenho;

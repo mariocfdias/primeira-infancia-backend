@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Job configuration
-const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwzjtHVQDC5fhJhvypIIZQ0synNEHlV7Y836XQeEeeaf636jtPKeDHwKjaDteSDzpBw/exec';
+const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwP0HqLNIiQn7TV1fU-c-4XplujMLsbvheolhv65s57VSm5ReizjchRFg1YATYt0DkU/exec';
 const jobConfig = {
     FETCH_MUNICIPIOS_URL: SCRIPT_URL,
     UPDATE_JSON_URL: SCRIPT_URL,
@@ -31,25 +31,25 @@ async function startServer() {
 
         // Run seeds in sequence
         await seedMunicipios(connection);
-        
+
         // Raw JSON endpoint (before Swagger setup to avoid middleware conflict)
         app.get('/raw-swagger.json', (req, res) => {
             // Get swagger options from the swagger.js file
             const options = require('./swagger').options;
             // Generate the specifications
             const specs = swaggerJsdoc(options);
-            
+
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.send(JSON.stringify(specs, null, 4));
         });
-        
+
         // Setup Swagger documentation
         setupSwagger(app);
-        
+
         // Setup routes
         app.use('/api', setupRoutes(connection));
-        
+
         // Setup scheduled jobs
         await setupJobs(connection, jobConfig);
         //await seedMunicipioDesempenho(connection);

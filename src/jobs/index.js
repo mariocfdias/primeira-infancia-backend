@@ -32,12 +32,12 @@ async function setupJobs(connection, config) {
     cron.schedule('*/5 * * * *', () => {
         autofetch(AUTOFETCH_URL);
     });
-    
+
     // // // Run updateJsonMunicipio job every 5 minutes
     // // cron.schedule('*/5 * * * *', () => {
     // //     updateJsonMunicipio(connection, UPDATE_JSON_URL);
     // // });
-    
+
     // // Run fetchEventos job every minute
     // cron.schedule('* * * * *', () => {
     //     fetchEventos(connection, FETCH_EVENTOS_URL);
@@ -66,7 +66,7 @@ async function setupJobs(connection, config) {
  */
 async function runJobsImmediately(connection, config) {
     console.log('Running jobs immediately on startup...');
-    
+
     const {
         FETCH_MUNICIPIOS_URL,
         UPDATE_JSON_URL,
@@ -77,28 +77,28 @@ async function runJobsImmediately(connection, config) {
 
     try {
         console.log('Starting sequential job execution...');
-        
+
         // Execute jobs in sequence, waiting for each to complete
-        await fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
-        console.log('fetchMunicipios job completed');
-        
+        // await fetchMunicipios(connection, FETCH_MUNICIPIOS_URL);
+        // console.log('fetchMunicipios job completed');
+
         // Uncomment if needed
         // await updateJsonMunicipio(connection, UPDATE_JSON_URL);
         // console.log('updateJsonMunicipio job completed');
-        
-        await fetchMissoes(connection, FETCH_MISSOES_URL);
-        console.log('fetchMissoes job completed');
-        
+
+        // await fetchMissoes(connection, FETCH_MISSOES_URL);
+        // console.log('fetchMissoes job completed');
+
         await fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
         console.log('fetchMissaoDesempenho job completed');
-        
-        await fetchEventos(connection, FETCH_EVENTOS_URL);
-        console.log('fetchEventos job completed');
-        
+
+        // await fetchEventos(connection, FETCH_EVENTOS_URL);
+        // console.log('fetchEventos job completed');
+
         console.log('All startup jobs completed successfully');
     } catch (error) {
         console.error('Error during sequential job execution:', error);
     }
 }
 
-module.exports = { setupJobs }; 
+module.exports = { setupJobs };

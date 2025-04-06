@@ -22,7 +22,7 @@ class MunicipioDesempenhoDTO {
             .withValidationStatus(entity.validation_status)
             .withUpdatedAt(entity.updated_at)
             .withEvidence([]);
-            
+
         // Match evidence with evidencias based on array position
         if (entity.missao && entity.missao.evidencias) {
             if(entity.validation_status != "PENDING"){
@@ -31,33 +31,33 @@ class MunicipioDesempenhoDTO {
             }
             let evidenciasArray = [];
             try {
-                evidenciasArray = typeof entity.missao.evidencias === 'string' 
-                    ? JSON.parse(entity.missao.evidencias) 
+                evidenciasArray = typeof entity.missao.evidencias === 'string'
+                    ? JSON.parse(entity.missao.evidencias)
                     : entity.missao.evidencias;
             } catch (e) {
                 evidenciasArray = [];
             }
-            
+
             // Parse entity evidence array
-            const entityEvidenceArray = entity.evidence 
-                ? (entity.evidence.length > 0 ? JSON.parse(entity.evidence) : []) 
+            const entityEvidenceArray = entity.evidence
+                ? (entity.evidence.length > 0 ? JSON.parse(entity.evidence) : [])
                 : [];
-                
+
             // Create enhanced evidence array from missao.evidencias
             // and add links from entity.evidence where available
             const enhancedEvidence = evidenciasArray.map((evidenciaItem, index) => {
                 // Find matching evidence in entity evidence by index
                 const matchingEvidence = index < entityEvidenceArray.length ? entityEvidenceArray[index] : null;
-                
+
                 return {
                     ...evidenciaItem,
                     evidence: matchingEvidence?.evidencia || null
                 };
             });
-            
+
             dto.withEvidence(enhancedEvidence);
         }
-        
+
         if (entity.municipio) {
             dto.withMunicipio({
                 codIbge: entity.municipio.codIbge,
@@ -68,7 +68,7 @@ class MunicipioDesempenhoDTO {
                 imagemAvatar: entity.municipio.imagemAvatar
             });
         }
-        
+
         if (entity.missao) {
             const missaoObj = {
                 id: entity.missao.id,
@@ -79,11 +79,11 @@ class MunicipioDesempenhoDTO {
                 qnt_pontos: entity.missao.qnt_pontos,
                 link_formulario: entity.missao.link_formulario
             };
-            
+
             if (entity.missao.evidencias) {
                 try {
-                    missaoObj.evidencias = typeof entity.missao.evidencias === 'string' 
-                        ? JSON.parse(entity.missao.evidencias) 
+                    missaoObj.evidencias = typeof entity.missao.evidencias === 'string'
+                        ? JSON.parse(entity.missao.evidencias)
                         : entity.missao.evidencias;
                 } catch (e) {
                     missaoObj.evidencias = [];
@@ -91,10 +91,10 @@ class MunicipioDesempenhoDTO {
             } else {
                 missaoObj.evidencias = [];
             }
-            
+
             dto.withMissao(missaoObj);
         }
-        
+
         return dto.build();
     }
 
@@ -121,7 +121,7 @@ class MunicipioDesempenhoBuilder {
     }
 
     withCodIbge(codIbge) {
-        this.dto.codIbge = codIbge ? codIbge.toUpperCase() : codIbge;
+        this.dto.codIbge = codIbge ? codIbge.toString().toUpperCase() : codIbge;
         return this;
     }
 
@@ -160,4 +160,4 @@ class MunicipioDesempenhoBuilder {
     }
 }
 
-module.exports = { MunicipioDesempenhoDTO, MunicipioDesempenhoBuilder }; 
+module.exports = { MunicipioDesempenhoDTO, MunicipioDesempenhoBuilder };

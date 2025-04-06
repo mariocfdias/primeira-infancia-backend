@@ -20,7 +20,7 @@ class MunicipioDesempenhoService {
     }
 
     async findByIbgeCode(codIbge, orgao) {
-        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge.toUpperCase(), orgao);
+        const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge?.toString().toUpperCase(), orgao);
         return desempenhos.map(desempenho => MunicipioDesempenhoDTO.fromEntity(desempenho));
     }
 
@@ -49,7 +49,7 @@ class MunicipioDesempenhoService {
         if (!desempenho) {
             throw new Error(`MunicipioDesempenho with id ${id} not found`);
         }
-        
+
         const entity = desempenhoDTO.toEntity();
         const updatedDesempenho = await this.municipioDesempenhoRepository.update(id, entity);
         return MunicipioDesempenhoDTO.fromEntity(updatedDesempenho);
@@ -59,15 +59,15 @@ class MunicipioDesempenhoService {
         if (!['VALID', 'PENDING', 'STARTED'].includes(status)) {
             throw new Error(`Invalid status: ${status}. Status must be one of: VALID, PENDING, STARTED`);
         }
-        
+
         const desempenho = await this.municipioDesempenhoRepository.findById(id);
         if (!desempenho) {
             throw new Error(`MunicipioDesempenho with id ${id} not found`);
         }
-        
+
         desempenho.validation_status = status;
         desempenho.updated_at = new Date();
-        
+
         const updatedDesempenho = await this.municipioDesempenhoRepository.update(id, desempenho);
         return MunicipioDesempenhoDTO.fromEntity(updatedDesempenho);
     }
@@ -77,13 +77,13 @@ class MunicipioDesempenhoService {
         if (!desempenho) {
             throw new Error(`MunicipioDesempenho with id ${id} not found`);
         }
-        
+
         const evidence = desempenho.evidence ? JSON.parse(desempenho.evidence) : [];
         evidence.push(evidenceUrl);
-        
+
         desempenho.evidence = JSON.stringify(evidence);
         desempenho.updated_at = new Date();
-        
+
         const updatedDesempenho = await this.municipioDesempenhoRepository.update(id, desempenho);
         return MunicipioDesempenhoDTO.fromEntity(updatedDesempenho);
     }
@@ -93,7 +93,7 @@ class MunicipioDesempenhoService {
         if (!desempenho) {
             throw new Error(`MunicipioDesempenho with id ${id} not found`);
         }
-        
+
         await this.municipioDesempenhoRepository.delete(id);
         return { success: true, message: `MunicipioDesempenho with id ${id} deleted successfully` };
     }
@@ -115,4 +115,4 @@ class MunicipioDesempenhoService {
     }
 }
 
-module.exports = MunicipioDesempenhoService; 
+module.exports = MunicipioDesempenhoService;
