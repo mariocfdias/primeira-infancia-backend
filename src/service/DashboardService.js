@@ -216,7 +216,7 @@ class DashboardService {
         const pointsPerLevel = 100;
         
         // Contar prefeituras participantes
-        const totalParticipatingPrefeituras = municipios.filter(m => m.status === 'Participante').length;
+        const totalParticipatingPrefeituras = municipios.filter(m => m.status === 'Participante' && m.codIbge.includes(orgao)).length;
         
         // Contadores para porcentagem de missões concluídas
         let totalValidMissions = 0;
