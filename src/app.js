@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Job configuration
-const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwP0HqLNIiQn7TV1fU-c-4XplujMLsbvheolhv65s57VSm5ReizjchRFg1YATYt0DkU/exec';
+const SCRIPT_URL = process.env.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwtyqE65ZrXZB3QRJM94utY2iTIo-vZYMxEtHq6Jg84702TzOEEpQzrZJe0fK9UeWiN/exec';
 const jobConfig = {
     FETCH_MUNICIPIOS_URL: SCRIPT_URL,
     UPDATE_JSON_URL: SCRIPT_URL,
