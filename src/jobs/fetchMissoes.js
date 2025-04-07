@@ -11,7 +11,7 @@ const MunicipioSeed = require('../service/MunicipioSeed');
  */
 async function fetchMissoes(connection, url, extraParams = {}) {
     console.log('Starting job: fetchMissoes');
-    
+
     const missoesService = new MissoesService(connection);
     const municipiosData = [
         {
@@ -79,7 +79,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
             nome: "Defensoria Pública do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1nb0ySnGH1XB88mTjNv7hcT5t9dYPE_0L/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -89,7 +89,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
             nome: "Ministério Público de Contas do Estado do Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/14stBpGds6ApxoKbW1fZbOawfX5c8CJTo/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -99,7 +99,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
             nome: "Ministério Público do Trabalho no Ceará",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1luurWfHIPVUHKAFGo1_YqPtm9aL06hEk/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -109,7 +109,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
             nome: "Superintendência do Trabalho e Emprego",
             status: "Participante",
             data_alteracao: new Date(0).toISOString(),
-            imagem_avatar: "https://drive.google.com/file/d/1MQGn3jZXFXdDd8aW8hzFNbaBB_20cr9N/view?usp=sharing",
+            imagem_avatar: "https://drive.google.com/file/d/1kHSKT81smSQi0HRwTGCEz6IEQ4MQz1lA/view?usp=sharing",
             badges: 0,
             points: 0,
             orgao: true
@@ -132,10 +132,10 @@ async function fetchMissoes(connection, url, extraParams = {}) {
         console.log('Finalizando job: fetchMissoes');
         return;
     }
-    
+
     // Array para armazenar as missões que falharam
     const falhasMissoes = [];
-    
+
     try {
         // Process each municipality
         for (const municipio of municipiosData) {
@@ -143,18 +143,18 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                 // Construct URL with the request parameter and municipality code
                 let fetchUrl = `${url}?request=documentacao_missoes&orgao=${municipio.cod_ibge}`;
                 console.log(`Buscando missões para ${municipio.nome}: ${fetchUrl}`);
-                
+
                 const response = await fetch(fetchUrl);
                 // Add debug info for the response
                 console.log(`Response status: ${response.status} ${response.statusText}`);
-                
+
                 try {
                     const data = await response.json();
                     console.log(`Response data type: ${typeof data}`);
-                    
+
                     if (data.status === 'success' && Array.isArray(data.data)) {
                         console.log(`Recebidas ${data.data.length} missões para processar para ${municipio.nome}`);
-                        
+
                         // Process and save each mission
                         for (const missaoData of data.data) {
                             try {
@@ -166,12 +166,12 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                                     // Mission doesn't exist yet
                                     existingMissao = null;
                                 }
-                                
+
                                 // Enhanced debugging: log the missao data with more detail
                                 console.log('Processing mission data:');
                                 console.log('Mission ID:', missaoData.id);
                                 console.log('Raw missaoData:', JSON.stringify(missaoData, null, 2));
-                                
+
                                 // Create a DTO from the received data
                                 try {
                                     const missaoDTO = MissoesDTO.builder()
@@ -184,7 +184,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                                         .withLinkFormulario(missaoData.link_formulario)
                                         .withEvidencias(missaoData.evidencias || [])
                                         .build();
-                                    
+
                                     // Save or update the mission in the database
                                     if (existingMissao) {
                                         await missoesService.updateMissao(missaoData.id, missaoDTO);
@@ -196,18 +196,18 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                                 } catch (dtoError) {
                                     console.error(`Erro ao criar DTO para missão ${missaoData.id}:`, dtoError.message);
                                     console.error('DTO Error stack:', dtoError.stack);
-                                    
+
                                     // Check each field for potential issues
                                     console.error('Problematic fields check:');
                                     const fields = [
                                         'id', 'categoria', 'descricao_da_categoria', 'emblema_da_categoria',
                                         'descricao_da_missao', 'qnt_pontos', 'link_formulario', 'evidencias'
                                     ];
-                                    
+
                                     for (const field of fields) {
                                         console.error(`${field}:`, typeof missaoData[field], missaoData[field]);
                                     }
-                                    
+
                                     throw dtoError; // Re-throw to be caught by outer catch block
                                 }
                             } catch (missionError) {
@@ -229,12 +229,12 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                                     }
                                 }
                                 // Registrar a missão que falhou
-                                const errorType = missionError.name === 'QueryFailedError' || 
-                                                 missionError.name === 'EntityNotFoundError' || 
-                                                 missionError.message.includes('SQLite') || 
-                                                 missionError.message.includes('typeorm') ? 
+                                const errorType = missionError.name === 'QueryFailedError' ||
+                                                 missionError.name === 'EntityNotFoundError' ||
+                                                 missionError.message.includes('SQLite') ||
+                                                 missionError.message.includes('typeorm') ?
                                                  'Database Error' : 'Processing Error';
-                                
+
                                 falhasMissoes.push({
                                     id: missaoData.id || 'ID desconhecido',
                                     municipio: municipio.nome,
@@ -244,7 +244,7 @@ async function fetchMissoes(connection, url, extraParams = {}) {
                                 });
                             }
                         }
-                        
+
                         console.log(`Processadas com sucesso ${data.data.length} missões para ${municipio.nome}`);
                     } else {
                         console.log(`Nenhuma missão para processar ou formato inválido recebido para ${municipio.nome}`);
@@ -261,12 +261,12 @@ async function fetchMissoes(connection, url, extraParams = {}) {
     } catch (error) {
         console.error('Erro no job fetchMissoes:', error.message);
     }
-    
+
     // Exibir resumo das missões que falharam
     if (falhasMissoes.length > 0) {
         console.log('=== RESUMO DE MISSÕES COM FALHA ===');
         console.log(`Total de missões com falha: ${falhasMissoes.length}`);
-        
+
         // Agrupar falhas por tipo de erro
         const errosPorTipo = {};
         falhasMissoes.forEach(falha => {
@@ -275,13 +275,13 @@ async function fetchMissoes(connection, url, extraParams = {}) {
             }
             errosPorTipo[falha.tipo_erro]++;
         });
-        
+
         // Mostrar resumo por tipo de erro
         console.log('Resumo por tipo de erro:');
         for (const tipo in errosPorTipo) {
             console.log(`- ${tipo}: ${errosPorTipo[tipo]}`);
         }
-        
+
         // Detalhes de cada falha
         falhasMissoes.forEach((falha, index) => {
             console.log(`${index + 1}. Missão ID: ${falha.id} | Município: ${falha.municipio} | Tipo: ${falha.tipo_erro} | Erro: ${falha.erro}`);
@@ -290,8 +290,8 @@ async function fetchMissoes(connection, url, extraParams = {}) {
     } else {
         console.log('Todas as missões foram processadas com sucesso!');
     }
-    
+
     console.log('Finalizado job: fetchMissoes');
 }
 
-module.exports = fetchMissoes; 
+module.exports = fetchMissoes;
