@@ -53,7 +53,7 @@ async function startServer() {
         // Setup scheduled jobs
         await setupJobs(connection, jobConfig);
         //await seedMunicipioDesempenho(connection);
-        //await seedOrgaosDesempenho(connection);
+        await seedOrgaosDesempenho(connection);
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
