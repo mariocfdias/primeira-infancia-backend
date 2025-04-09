@@ -43,11 +43,18 @@ class MunicipioDesempenhoDTO {
                 ? (entity.evidence.length > 0 ? JSON.parse(entity.evidence) : [])
                 : [];
 
+            entityEvidenceArray.map(evidence => {
+                console.log('evidence', evidence);
+                evidence.title = evidenciasArray[evidence.title.split(" ")[1] - 1].titulo
+            });
+            console.log('entityEvidenceArray', entityEvidenceArray);
             // Create enhanced evidence array from missao.evidencias
             // and add links from entity.evidence where available
-            const enhancedEvidence = evidenciasArray.map((evidenciaItem, index) => {
-                // Find matching evidence in entity evidence by index
-                const matchingEvidence = index < entityEvidenceArray.length ? entityEvidenceArray[index] : null;
+            const enhancedEvidence = evidenciasArray.map((evidenciaItem) => {
+                // Find matching evidence in entity evidence by title
+                const matchingEvidence = entityEvidenceArray.find(
+                    evidence => evidence.title === evidenciaItem.titulo
+                );
 
                 return {
                     ...evidenciaItem,
