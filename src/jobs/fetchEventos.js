@@ -31,21 +31,36 @@ async function fetchEventos(connection, url) {
         const dateParam = latestDate.toISOString();
         console.log(`Fetching events newer than: ${dateParam}`);
         
-        // Make the API request with the date parameter
-        const fetchUrl = `${url}?request=eventos&date=${encodeURIComponent(dateParam)}`;
-        console.log(`Fetching from URL: ${fetchUrl}`);
+        // Make the API request with the date parameter for each possible orgao
+        const possibleOrgaos = ['CAMARA', 'PREFEITURA'];
+        let allNewEvents = [];
         
-        const response = await fetch(fetchUrl);
-        const newEventsData = await response.json();
-        const newEvents = newEventsData.data;
-
-        console.log({newEvents, test: newEvents.data})
-        
-        if (Array.isArray(newEvents) && newEvents.length > 0) {
-            console.log(`Received ${newEvents.length} new events to process`);
+        // Fetch events for each orgao type
+        for (const orgao of possibleOrgaos) {
+            const fetchUrl = `${url}?request=eventos&date=${encodeURIComponent(dateParam)}&orgao=${orgao}`;
+            console.log(`Fetching from URL: ${fetchUrl}`);
             
+            try {
+                const response = await fetch(fetchUrl);
+                const newEventsData = await response.json();
+                const newEvents = newEventsData.data;
+                
+                if (Array.isArray(newEvents) && newEvents.length > 0) {
+                    console.log(`Received ${newEvents.length} new events for orgao ${orgao}`);
+                    allNewEvents = [...allNewEvents, ...newEvents];
+                } else {
+                    console.log(`No new events to process for orgao ${orgao}`);
+                }
+            } catch (fetchError) {
+                console.error(`Error fetching events for orgao ${orgao}:`, fetchError.message);
+            }
+        }
+        
+        console.log(`Total new events to process: ${allNewEvents.length}`);
+        
+        if (allNewEvents.length > 0) {
             // Process and save each new event
-            for (const eventData of newEvents) {
+            for (const eventData of allNewEvents) {
                 try {
                     // Check if the event already exists in the database
                     const queryBuilder = eventosRepository.repository.createQueryBuilder("eventos")
@@ -77,7 +92,7 @@ async function fetchEventos(connection, url) {
                 }
             }
             
-            console.log(`Successfully processed ${newEvents.length} events`);
+            console.log(`Successfully processed ${allNewEvents.length} events`);
         } else {
             console.log('No new events to process');
         }
