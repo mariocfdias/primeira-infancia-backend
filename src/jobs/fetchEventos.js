@@ -58,6 +58,7 @@ async function fetchEventos(connection, url) {
                         console.log(`Event already exists: ${eventData.event} for municipality ${eventData.cod_ibge}`);
                         continue; // Skip this event and move to the next one
                     }
+
                     
                     // Create a DTO from the received data
                     const eventoDTO = EventosDTO.builder()
@@ -66,7 +67,8 @@ async function fetchEventos(connection, url) {
                         .withDescription(eventData.description)
                         .withCodIbge(eventData.cod_ibge)
                         .build();
-                    
+                    console.log({eventoDTO: eventoDTO.toEntity()})
+
                     // Save the event to the database
                     await eventosRepository.create(eventoDTO.toEntity());
                     console.log(`Saved new event: ${eventData.event} for municipality ${eventData.cod_ibge}`);

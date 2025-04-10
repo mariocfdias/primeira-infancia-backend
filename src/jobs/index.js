@@ -39,16 +39,16 @@ async function setupJobs(connection, config) {
     // // });
 
     // // Run fetchEventos job every minute
-    // cron.schedule('* * * * *', () => {
-    //     fetchEventos(connection, FETCH_EVENTOS_URL);
-    // });
+    cron.schedule('* * * * *', () => {
+        fetchEventos(connection, FETCH_EVENTOS_URL);
+    });
 
     // Run fetchMissoes job every hour
     cron.schedule('0 * * * *', () => {
         fetchMissoes(connection, FETCH_MISSOES_URL);
     });
 
-    // Run fetchMissaoDesempenho job every hour
+    // // Run fetchMissaoDesempenho job every hour
     cron.schedule('0 * * * *', () => {
         fetchMissaoDesempenho(connection, FETCH_MISSAO_DESEMPENHO_URL);
     });

@@ -165,7 +165,6 @@ async function fetchMissaoDesempenho(connection, url) {
 
 
                             // Check if a record with the same codIbge and missaoId already exists
-                            console.log({ibgeUPperCase: desempenhoData.codIbge})
                             const existingDesempenhos = await municipioDesempenhoService.findByIbgeCode(desempenhoData.codIbge);
                             const existingDesempenho = existingDesempenhos.find(d => d.missaoId === desempenhoData.missaoId);
 
