@@ -10,7 +10,7 @@ class DashboardService {
         this.missoesRepository = new MissoesRepository(connection);
         this.municipioRepository = new MunicipioRepository(connection);
         this.municipioDesempenhoRepository = new MunicipioDesempenhoRepository(connection);
-        
+
         // Cache para o panorama do mapa
         this.mapPanoramaCache = {
             data: null,
@@ -24,7 +24,7 @@ class DashboardService {
         if (!this.mapPanoramaCache.data || !this.mapPanoramaCache.timestamp) {
             return false;
         }
-        
+
         const now = Date.now();
         return (now - this.mapPanoramaCache.timestamp) < this.mapPanoramaCache.ttl;
     }
@@ -37,37 +37,37 @@ class DashboardService {
         } else {
             missoes = await this.missoesRepository.findAll();
         }
-        
+
         // Get all municipios to count total
         let municipios = await this.municipioRepository.findAll();
-        
+
         // Filter municipios by orgao if provided
         if (orgao) {
             municipios = municipios.filter(municipio => municipio.codIbge.includes(orgao));
         }
-        
+
         const totalMunicipios = municipios.length;
-        
+
         // Create mission panorama for each mission
         const missionPanorama = [];
-        
+
         for (const missao of missoes) {
             // Get all desempenhos for this mission
             let desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missao.id);
-            
+
             // Filter desempenhos by orgao if provided
             if (orgao) {
                 desempenhos = desempenhos.filter(desempenho => desempenho.codIbge.includes(orgao));
             }
-            
+
             // Count by status
             const countValid = desempenhos.filter(d => d.validation_status === 'VALID').length;
             const countPending = desempenhos.filter(d => d.validation_status === 'PENDING').length;
             const countStarted = desempenhos.filter(d => d.validation_status === 'STARTED').length;
-            
+
             // Create panorama DTO
             const missionDTO = MissoesDTO.fromEntity(missao);
-            
+
             const panoramaDTO = MissionPanoramaDTO.builder()
                 .withMissao(missionDTO)
                 .withCountValid(countValid)
@@ -75,10 +75,10 @@ class DashboardService {
                 .withCountStarted(countStarted)
                 .withTotalMunicipios(totalMunicipios)
                 .build();
-            
+
             missionPanorama.push(panoramaDTO);
         }
-        
+
         return missionPanorama;
     }
 
@@ -92,24 +92,21 @@ class DashboardService {
         // Get all municipios to count total
         const municipios = await this.municipioRepository.findAll();
         const totalMunicipios = municipios.length;
-        
+
         // Get all desempenhos for this mission
         const desempenhos = await this.municipioDesempenhoRepository.findByMissaoId(missaoId);
-        
+
         // Count by status and filter desempenhos
-        const validDesempenhos = desempenhos.filter(d => d.validation_status === 'VALID');
-        const pendingDesempenhos = desempenhos.filter(d => d.validation_status === 'PENDING');
-        
+        const validDesempenhos = desempenhos.filter(d => d.validation_status == 'VALID');
+        const pendingDesempenhos = desempenhos.filter(d => d.validation_status == 'PENDING');
+
+        const startedDesempenhos = desempenhos.filter(d => d.validation_status == 'STARTED');
+
+        console.log({startedDesempenhos, tamanho: startedDesempenhos.length});
+
         // Separate pending desempenhos into started (with evidence) and just pending
-        const startedDesempenhos = pendingDesempenhos.filter(d => {
-            try {
-                const evidence = JSON.parse(d.evidence);
-                return Array.isArray(evidence) && evidence.length > 0;
-            } catch (e) {
-                return false;
-            }
-        });
-        
+
+
         const justPendingDesempenhos = pendingDesempenhos.filter(d => {
             try {
                 const evidence = JSON.parse(d.evidence);
@@ -122,7 +119,7 @@ class DashboardService {
         const countValid = validDesempenhos.length;
         const countPending = justPendingDesempenhos.length;
         const countStarted = startedDesempenhos.length;
-        
+
         // Get municipios that completed the mission
         const completedMunicipios = [];
         for (const desempenho of validDesempenhos) {
@@ -149,10 +146,10 @@ class DashboardService {
                 startedMunicipios.push(MunicipioDTO.fromEntity(municipio));
             }
         }
-        
+
         // Create panorama DTO
         const missionDTO = MissoesDTO.fromEntity(missao);
-        
+
         return MissionPanoramaDTO.builder()
             .withMissao(missionDTO)
             .withCountValid(countValid)
@@ -171,11 +168,11 @@ class DashboardService {
         if (!orgao && this.isMapPanoramaCacheValid()) {
             return this.mapPanoramaCache.data;
         }
-        
+
         // Obter todos os municípios e missões em uma única consulta
         let municipios;
         let missoes;
-        
+
         if (orgao) {
             [municipios, missoes] = await Promise.all([
                 this.municipioRepository.findAll(),
@@ -189,18 +186,18 @@ class DashboardService {
                 this.missoesRepository.findAll()
             ]);
         }
-        
+
         const totalMissoes = missoes.length;
         const totalMunicipios = municipios.length;
-        
+
         // Obter todos os desempenhos de uma vez, em vez de consultar para cada município
         let allDesempenhos = await this.municipioDesempenhoRepository.findAllWithRelations();
-        
+
         // Aplicar filtro de órgão nos desempenhos se fornecido
         if (orgao) {
             allDesempenhos = allDesempenhos.filter(desempenho => desempenho.codIbge.includes(orgao));
         }
-        
+
         // Agrupar desempenhos por codIbge para acesso rápido
         const desempenhosByIbge = {};
         allDesempenhos.forEach(desempenho => {
@@ -209,36 +206,36 @@ class DashboardService {
             }
             desempenhosByIbge[desempenho.codIbge].push(desempenho);
         });
-        
+
         // Inicializar arrays e contadores
         const mapPanorama = [];
         const municipioPoints = [];
         const pointsPerLevel = 100;
-        
+
         // Contar prefeituras participantes
         const totalParticipatingPrefeituras = municipios.filter(m => m.status === 'Participante' && m.codIbge.includes(orgao)).length;
-        
+
         // Contadores para porcentagem de missões concluídas
         let totalValidMissions = 0;
         let totalMissionEntries = 0;
-        
+
         // Processar cada município
         for (const municipio of municipios) {
             const desempenhos = desempenhosByIbge[municipio.codIbge] || [];
-            
+
             // Contar por status
             const countValid = desempenhos.filter(d => d.validation_status === 'VALID').length;
             const countPending = desempenhos.filter(d => d.validation_status === 'PENDING').length;
             const countStarted = desempenhos.filter(d => d.validation_status === 'STARTED').length;
-            
+
             // Adicionar aos totais para cálculo de porcentagem
             totalValidMissions += countValid;
             totalMissionEntries += desempenhos.length;
-            
+
             // Calcular pontos totais das missões válidas
             let totalPoints = 0;
             const validDesempenhos = desempenhos.filter(d => d.validation_status === 'VALID');
-            
+
             for (const desempenho of validDesempenhos) {
                 // Buscar a missão correspondente no array de missões
                 const missao = missoes.find(m => m.id === desempenho.missaoId);
@@ -246,13 +243,13 @@ class DashboardService {
                     totalPoints += missao.qnt_pontos;
                 }
             }
-            
+
             // Armazenar os pontos para cálculo posterior de desempenho
             municipioPoints.push(totalPoints);
-            
+
             // Criar DTO do panorama
             const municipioDTO = MunicipioDTO.fromEntity(municipio);
-            
+
             const panoramaDTO = MapPanoramaDTO.builder()
                 .withMunicipio(municipioDTO)
                 .withCountValid(countValid)
@@ -261,15 +258,15 @@ class DashboardService {
                 .withTotalMissoes(totalMissoes)
                 .withPoints(totalPoints)
                 .build();
-            
+
             mapPanorama.push(panoramaDTO);
         }
-        
+
         // Calcular porcentagem de missões concluídas
-        const percentageFinishedMissions = totalMissionEntries > 0 
-            ? (totalValidMissions / totalMissionEntries) * 100 
+        const percentageFinishedMissions = totalMissionEntries > 0
+            ? (totalValidMissions / totalMissionEntries) * 100
             : 0;
-        
+
         // Inicializar a distribuição de níveis
         const levelDistribution = [
             {
@@ -291,7 +288,7 @@ class DashboardService {
         // Adicionar níveis regulares
         const maxPoints = Math.max(...municipioPoints, 1);
         const numLevels = Math.ceil(maxPoints / pointsPerLevel);
-        
+
         for (let i = 1; i <= numLevels; i++) {
             levelDistribution.push({
                 level: i,
@@ -301,7 +298,7 @@ class DashboardService {
                 municipios: []
             });
         }
-        
+
         // Adicionar um nível extra para os pontos que são múltiplos exatos de pointsPerLevel
         levelDistribution.push({
             level: numLevels + 1,
@@ -332,7 +329,7 @@ class DashboardService {
 
             // Encontrar o nível apropriado para os pontos
             let levelIndex;
-            
+
             // Se points é múltiplo exato de pointsPerLevel, coloca no próximo nível
             if (points % pointsPerLevel === 0) {
                 levelIndex = (points / pointsPerLevel) + 2;
@@ -352,7 +349,7 @@ class DashboardService {
             .withLevelDistribution(levelDistribution)
             .withTotalMunicipios(totalMunicipios)
             .build();
-        
+
         // Armazenar resultado no cache apenas se não houver filtro de órgão
         if (!orgao) {
             this.mapPanoramaCache.data = {
@@ -363,7 +360,7 @@ class DashboardService {
             };
             this.mapPanoramaCache.timestamp = Date.now();
         }
-        
+
         return {
             mapPanorama,
             desempenho: desempenhoPanorama,
@@ -378,32 +375,32 @@ class DashboardService {
         if (!municipio) {
             throw new Error('Município não encontrado');
         }
-        
+
         // Obtém todas as missões para contar o total
         const missoes = await this.missoesRepository.findAll();
         const totalMissoes = missoes.length;
-        
+
         // Obtém todos os desempenhos para este município
         const desempenhos = await this.municipioDesempenhoRepository.findByIbgeCode(codIbge);
-        
+
         // Conta por status
         const countValid = desempenhos.filter(d => d.validation_status === 'VALID').length;
         const countPending = desempenhos.filter(d => d.validation_status === 'PENDING').length;
         const countStarted = desempenhos.filter(d => d.validation_status === 'STARTED').length;
-        
+
         // Calcula o total de pontos das missões válidas
         let totalPoints = 0;
         const validDesempenhos = desempenhos.filter(d => d.validation_status === 'VALID');
-        
+
         for (const desempenho of validDesempenhos) {
             if (desempenho.missao && desempenho.missao.qnt_pontos) {
                 totalPoints += desempenho.missao.qnt_pontos;
             }
         }
-        
+
         // Cria o DTO do panorama com o objeto município e pontos
         const municipioDTO = MunicipioDTO.fromEntity(municipio);
-        
+
         const panoramaDTO = MapPanoramaDTO.builder()
             .withMunicipio(municipioDTO)
             .withCountValid(countValid)
@@ -412,11 +409,11 @@ class DashboardService {
             .withTotalMissoes(totalMissoes)
             .withPoints(totalPoints)
             .build();
-        
+
         // Determina o nível do município com base nos pontos
         const pointsPerLevel = 100;
         let level;
-        
+
         // Verifica se é não participante
         if (municipio.status !== 'Participante') {
             level = 'NP';  // Não Participante
@@ -430,7 +427,7 @@ class DashboardService {
                 level = Math.floor((totalPoints - 1) / pointsPerLevel) + 1;
             }
         }
-        
+
         return {
             mapPanorama: panoramaDTO,
             level: level,
@@ -445,4 +442,4 @@ class DashboardService {
     }
 }
 
-module.exports = DashboardService; 
+module.exports = DashboardService;
