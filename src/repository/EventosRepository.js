@@ -4,7 +4,7 @@ class EventosRepository {
     }
 
     async findAll(options = {}) {
-        const { page = 0, limit = 10, event, municipioSearch, sortDirection = "DESC" } = options;
+        const { page = 0, limit = 10, event, municipioSearch, sortDirection = "DESC", orgao } = options;
         const skip = page * limit;
         
         const queryBuilder = this.repository.createQueryBuilder("eventos")
@@ -19,6 +19,10 @@ class EventosRepository {
         
         if (municipioSearch) {
             queryBuilder.andWhere("municipio.nome LIKE :municipioSearch", { municipioSearch: `%${municipioSearch}%` });
+        }
+
+        if (orgao) {
+            queryBuilder.andWhere("eventos.cod_ibge LIKE :orgao", { orgao: `%${orgao}%` });
         }
         
         const [results, total] = await queryBuilder.getManyAndCount();

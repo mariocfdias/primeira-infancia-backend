@@ -109,6 +109,12 @@ class EventosController {
      *           enum: [ASC, DESC]
      *           default: DESC
      *         description: Direção da ordenação por data
+     *       - in: query
+     *         name: orgao
+     *         schema:
+     *           type: string
+     *           enum: [CAMARA, PREFEITURA]
+     *         description: Filtro por órgão (CAMARA ou PREFEITURA) contido no cod_ibge
      *     responses:
      *       200:
      *         description: Lista de eventos
@@ -135,13 +141,22 @@ class EventosController {
      */
     async getAllEventos(req, res) {
         try {
-            const { page, limit, event, municipioSearch, sortDirection } = req.query;
+            const { page, limit, event, municipioSearch, sortDirection, orgao } = req.query;
+
+            // Validate orgao parameter
+            const validOrgaoValues = ["CAMARA", "PREFEITURA", undefined, null];
+            const orgaoUpper = orgao?.toUpperCase();
+            if (!validOrgaoValues.includes(orgaoUpper)) {
+                return res.status(400).json({ status: 'error', message: 'Invalid value for orgao parameter. Allowed values are CAMARA or PREFEITURA.' });
+            }
+
             const eventos = await this.eventosService.findAll({ 
                 page: parseInt(page) || 0, 
                 limit: parseInt(limit) || 10,
                 event,
                 municipioSearch,
-                sortDirection: sortDirection?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
+                sortDirection: sortDirection?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC',
+                orgao: orgaoUpper // Pass validated and uppercased value
             });
             return res.json({ 
                 status: 'success', 
