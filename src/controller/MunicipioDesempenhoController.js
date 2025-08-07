@@ -283,7 +283,7 @@ class MunicipioDesempenhoController {
             const desempenhoDTO = MunicipioDesempenhoDTO.builder()
                 .withCodIbge(req.body.codIbge)
                 .withMissaoId(req.body.missaoId)
-                .withValidationStatus(req.body.validation_status || 'STARTED')
+                .withValidationStatus(req.body.validation_status || 'PENDING')
                 .withUpdatedAt(req.body.updated_at || new Date())
                 .withEvidence(req.body.evidence || [])
                 .build();

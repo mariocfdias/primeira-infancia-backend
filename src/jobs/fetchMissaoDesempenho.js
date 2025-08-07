@@ -173,7 +173,7 @@ async function fetchMissaoDesempenho(connection, url) {
                             const desempenhoDTO = MunicipioDesempenhoDTO.builder()
                                 .withCodIbge(desempenhoData.codIbge)
                                 .withMissaoId(desempenhoData.missaoId)
-                                .withValidationStatus(desempenhoData.validation_status || 'STARTED')
+                                .withValidationStatus(desempenhoData.validation_status || 'PENDING')
                                 .withUpdatedAt(desempenhoData.updated_at || new Date())
                                 .withEvidence(desempenhoData.evidence || [])
                                 .build();
@@ -280,7 +280,7 @@ async function fetchMissaoDesempenho(connection, url) {
                             const desempenhoDTO = MunicipioDesempenhoDTO.builder()
                                 .withCodIbge(desempenhoData.codIbge)
                                 .withMissaoId(desempenhoData.missaoId)
-                                .withValidationStatus(desempenhoData.validation_status || 'STARTED')
+                                .withValidationStatus(desempenhoData.validation_status || 'PENDING')
                                 .withUpdatedAt(desempenhoData.updated_at || new Date())
                                 .withEvidence(desempenhoData.evidence || [])
                                 .build();
