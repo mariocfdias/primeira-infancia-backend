@@ -45,19 +45,47 @@ class MunicipioDesempenhoDTO {
 
             entityEvidenceArray.map(evidence => {
                 console.log('evidence', evidence);
-                evidence.title = evidenciasArray[evidence.title.split(" ")[1] - 1].titulo
+                
+                // Safeguard: ensure evidence.title exists and has expected format
+                if (evidence.title && typeof evidence.title === 'string') {
+                    const titleParts = evidence.title.split(" ");
+                    if (titleParts.length >= 2) {
+                        const index = parseInt(titleParts[1]) - 1;
+                        
+                        // Safeguard: check if evidenciasArray has the index and titulo property
+                        if (evidenciasArray[index] && evidenciasArray[index].titulo) {
+                            evidence.title = evidenciasArray[index].titulo;
+                        } else {
+                            // Fallback: create template title based on mission info
+                            const missionName = entity.missao?.descricao_da_missao || entity.missao?.categoria || 'Missão';
+                            evidence.title = `${missionName} - Evidência ${titleParts[1]} (Título não disponível)`;
+                        }
+                    } else {
+                        // Fallback: title doesn't have expected format
+                        const missionName = entity.missao?.descricao_da_missao || entity.missao?.categoria || 'Missão';
+                        evidence.title = `${missionName} - Evidência (Título não disponível)`;
+                    }
+                } else {
+                    // Fallback: evidence.title is undefined or invalid
+                    const missionName = entity.missao?.descricao_da_missao || entity.missao?.categoria || 'Missão';
+                    evidence.title = `${missionName} - Evidência (Título não disponível)`;
+                }
             });
             console.log('entityEvidenceArray', entityEvidenceArray);
             // Create enhanced evidence array from missao.evidencias
             // and add links from entity.evidence where available
             const enhancedEvidence = evidenciasArray.map((evidenciaItem) => {
+                // Safeguard: ensure evidenciaItem has titulo property
+                const itemTitulo = evidenciaItem?.titulo || `${entity.missao?.descricao_da_missao || entity.missao?.categoria || 'Missão'} - Evidência (Título não disponível)`;
+                
                 // Find matching evidence in entity evidence by title
                 const matchingEvidence = entityEvidenceArray.find(
-                    evidence => evidence.title === evidenciaItem.titulo
+                    evidence => evidence.title === itemTitulo
                 );
 
                 return {
                     ...evidenciaItem,
+                    titulo: itemTitulo,
                     evidence: matchingEvidence?.evidencia || null
                 };
             });
